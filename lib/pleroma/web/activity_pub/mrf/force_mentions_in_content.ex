@@ -71,39 +71,77 @@ defmodule Pleroma.Web.ActivityPub.MRF.ForceMentionsInContent do
     end)
   end
 
+  defp is_remote(host) do
+    my_host = Pleroma.Config.get([Pleroma.Web.Endpoint, :url, :host])
+    my_host != host
+  end
+
+  defp has_soapbox_header(host) do
+    api_url = "https://" <> host <> "/api/v1/instance"
+    api_resp = HTTPoison.get!(api_url)
+
+    if api_resp.status_code == 200 do
+      with {:ok, resp_body} <- Jason.decode(api_resp.body) do
+        if resp_body["soapbox"] do
+          true
+        else
+          false
+        end
+      end
+    else
+      false
+    end
+  end
+
+  defp is_soapbox(object) do
+    known_soapbox_hosts = ["poa.st", "gleasonator.com", "spinster.xyz", "leafposter.club"]
+    actor = object["object"]["actor"]
+    host = URI.parse(actor).host
+
+    cond do
+      is_remote(host) && Enum.member?(known_soapbox_hosts, host) -> true
+      is_remote(host) && has_soapbox_header(host) -> true
+      true -> false
+    end
+  end
+
   @impl true
   def filter(%{"type" => "Create", "object" => %{"type" => "Note", "to" => to}} = object)
       when is_list(to) do
-    # image-only posts from pleroma apparently reach this MRF without the content field
-    content = object["object"]["content"] || ""
+    if is_soapbox(object) do
+      # image-only posts from pleroma apparently reach this MRF without the content field
+      content = object["object"]["content"] || ""
 
-    # Get the replied-to user for sorting
-    replied_to_user = get_replied_to_user(object["object"])
+      # Get the replied-to user for sorting
+      replied_to_user = get_replied_to_user(object["object"])
 
-    mention_users =
-      to
-      |> clean_recipients(object)
-      |> Enum.map(&User.get_cached_by_ap_id/1)
-      |> Enum.reject(&is_nil/1)
-      |> sort_replied_user(replied_to_user)
+      mention_users =
+        to
+        |> clean_recipients(object)
+        |> Enum.map(&User.get_cached_by_ap_id/1)
+        |> Enum.reject(&is_nil/1)
+        |> sort_replied_user(replied_to_user)
 
-    explicitly_mentioned_uris = extract_mention_uris_from_content(content)
+      explicitly_mentioned_uris = extract_mention_uris_from_content(content)
 
-    added_mentions =
-      Enum.reduce(mention_users, "", fn %User{ap_id: uri} = user, acc ->
-        unless uri in explicitly_mentioned_uris do
-          acc <> Formatter.mention_from_user(user, %{mentions_format: :compact}) <> " "
-        else
-          acc
-        end
-      end)
+      added_mentions =
+        Enum.reduce(mention_users, "", fn %User{ap_id: uri} = user, acc ->
+          unless uri in explicitly_mentioned_uris do
+            acc <> Formatter.mention_from_user(user, %{mentions_format: :compact}) <> " "
+          else
+            acc
+          end
+        end)
 
-    content =
-      if added_mentions != "",
-        do: "<span class=\"recipients-inline\">#{added_mentions}</span>" <> content,
-        else: content
+      content =
+        if added_mentions != "",
+          do: "<span class=\"recipients-inline\">#{added_mentions}</span>" <> content,
+          else: content
 
-    {:ok, put_in(object["object"]["content"], content)}
+      {:ok, put_in(object["object"]["content"], content)}
+    else
+      {:ok, object}
+    end
   end
 
   @impl true
