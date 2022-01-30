@@ -94,11 +94,13 @@ defmodule Pleroma.Web.ActivityPub.MRF.ForceMentionsInContent do
   end
 
   defp is_soapbox(object) do
-    known_soapbox_hosts = ["poa.st", "gleasonator.com", "spinster.xyz", "leafposter.club"]
+    known_soapbox_hosts = ["gleasonator.com", "spinster.xyz", "leafposter.club"]
+    skip_hosts = ["poa.st"] # Getting double mentions when they reply to misskey or mastodon(?)
     actor = object["object"]["actor"]
     host = URI.parse(actor).host
 
     cond do
+      is_remote(host) && Enum.member?(skip_hosts, host) -> false
       is_remote(host) && Enum.member?(known_soapbox_hosts, host) -> true
       is_remote(host) && has_soapbox_header(host) -> true
       true -> false
