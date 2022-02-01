@@ -95,7 +95,8 @@ defmodule Pleroma.Web.ActivityPub.MRF.ForceMentionsInContent do
 
   defp is_soapbox(object) do
     known_soapbox_hosts = ["gleasonator.com", "spinster.xyz", "leafposter.club"]
-    skip_hosts = [""] # Getting double mentions when they reply to misskey or mastodon(?)
+    # Getting double mentions when they reply to misskey or mastodon(?)
+    skip_hosts = [""]
     actor = object["object"]["actor"]
     host = URI.parse(actor).host
 
@@ -108,8 +109,13 @@ defmodule Pleroma.Web.ActivityPub.MRF.ForceMentionsInContent do
   end
 
   @impl true
-  def filter(%{"type" => "Create", "object" => %{"type" => "Note", "to" => to}} = object)
-      when is_list(to) do
+  def filter(
+        %{
+          "type" => "Create",
+          "object" => %{"type" => "Note", "to" => to, "inReplyTo" => in_reply_to}
+        } = object
+      )
+      when is_list(to) and is_binary(in_reply_to) do
     if is_soapbox(object) do
       # image-only posts from pleroma apparently reach this MRF without the content field
       content = object["object"]["content"] || ""
