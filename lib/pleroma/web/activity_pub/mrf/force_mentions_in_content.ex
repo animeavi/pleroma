@@ -76,44 +76,6 @@ defmodule Pleroma.Web.ActivityPub.MRF.ForceMentionsInContent do
     my_host != host
   end
 
-  defp has_soapbox_header(host) do
-    api_url = "https://" <> host <> "/api/v1/instance"
-    api_resp = HTTPoison.get!(api_url)
-
-    if api_resp.status_code == 200 do
-      with {:ok, resp_body} <- Jason.decode(api_resp.body) do
-        if resp_body["soapbox"] do
-          true
-        else
-          false
-        end
-      end
-    else
-      false
-    end
-  end
-
-  defp is_soapbox(object) do
-    known_soapbox_hosts = [
-      "gleasonator.com",
-      "spinster.xyz",
-      "leafposter.club",
-      "social.silkky.cloud"
-    ]
-
-    # Getting double mentions when they reply to misskey or mastodon(?)
-    skip_hosts = [""]
-    actor = object["object"]["actor"]
-    host = URI.parse(actor).host
-
-    cond do
-      is_remote(host) && Enum.member?(skip_hosts, host) -> false
-      is_remote(host) && Enum.member?(known_soapbox_hosts, host) -> true
-      is_remote(host) && has_soapbox_header(host) -> true
-      true -> false
-    end
-  end
-
   @impl true
   def filter(
         %{
@@ -122,7 +84,10 @@ defmodule Pleroma.Web.ActivityPub.MRF.ForceMentionsInContent do
         } = object
       )
       when is_list(to) and is_binary(in_reply_to) do
-    if is_soapbox(object) do
+    actor = object["object"]["actor"]
+    host = URI.parse(actor).host
+
+    if is_remote(host) do
       # image-only posts from pleroma apparently reach this MRF without the content field
       content = object["object"]["content"] || ""
 
