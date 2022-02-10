@@ -138,34 +138,38 @@ defmodule Pleroma.Web.ActivityPub.MRF.ForceMentionsInContent do
 
       explicitly_mentioned_uris = extract_mention_uris_from_content(content)
 
-      added_mentions =
-        Enum.reduce(mention_users, "", fn %User{ap_id: uri} = user, acc ->
-          unless uri in explicitly_mentioned_uris do
-            acc <> Formatter.mention_from_user(user, %{mentions_format: :compact}) <> " "
-          else
-            acc
+      if Enum.empty?(explicitly_mentioned_uris) do
+        added_mentions =
+          Enum.reduce(mention_users, "", fn %User{ap_id: uri} = user, acc ->
+            unless uri in explicitly_mentioned_uris do
+              acc <> Formatter.mention_from_user(user, %{mentions_format: :compact}) <> " "
+            else
+              acc
+            end
+          end)
+
+        recipients_inline =
+          if added_mentions != "",
+            do: "<span class=\"recipients-inline\">#{added_mentions}</span>",
+            else: ""
+
+        content =
+          cond do
+            # For Markdown posts, insert the mentions inside the first <p> tag
+            recipients_inline != "" && String.starts_with?(content, "<p>") ->
+              "<p>" <> recipients_inline <> String.trim_leading(content, "<p>")
+
+            recipients_inline != "" ->
+              recipients_inline <> content
+
+            true ->
+              content
           end
-        end)
 
-      recipients_inline =
-        if added_mentions != "",
-          do: "<span class=\"recipients-inline\">#{added_mentions}</span>",
-          else: ""
-
-      content =
-        cond do
-          # For Markdown posts, insert the mentions inside the first <p> tag
-          recipients_inline != "" && String.starts_with?(content, "<p>") ->
-            "<p>" <> recipients_inline <> String.trim_leading(content, "<p>")
-
-          recipients_inline != "" ->
-            recipients_inline <> content
-
-          true ->
-            content
-        end
-
-      {:ok, put_in(object["object"]["content"], content)}
+        {:ok, put_in(object["object"]["content"], content)}
+      else
+        {:ok, object}
+      end
     else
       {:ok, object}
     end
