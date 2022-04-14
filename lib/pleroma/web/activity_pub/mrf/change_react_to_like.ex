@@ -8,20 +8,32 @@ defmodule Pleroma.Web.ActivityPub.MRF.ChangeReactstoLikes do
   @moduledoc "Changes specified EmojiReacts into a Like"
   @behaviour Pleroma.Web.ActivityPub.MRF.Policy
 
+  defp is_remote(host) do
+    my_host = Pleroma.Config.get([Pleroma.Web.Endpoint, :url, :host])
+    my_host != host
+  end
+
   @impl true
   @spec filter(any) :: {:ok, any}
   def filter(%{"type" => "EmojiReact"} = object) do
-    react = object["content"]
+    actor = object["actor"]
+    host = URI.parse(actor).host
 
-    # TODO: make this pull from config
-    if react in ["👍", "👎", "❤️", "😆", "😮", "😢", "😩", "😭", "🔥", "⭐"] do
-      Logger.info("MRF.ChangeReactstoLikes: Changing #{inspect(react)} to a Like")
+    if is_remote(host) do
+      react = object["content"]
 
-      object =
-        object
-        |> Map.put("type", "Like")
+      # TODO: make this pull from config
+      if react in ["👍", "👎", "❤️", "😆", "😮", "😢", "😩", "😭", "🔥", "⭐"] do
+        Logger.info("MRF.ChangeReactstoLikes: Changing #{inspect(react)} to a Like")
 
-      {:ok, object}
+        object =
+          object
+          |> Map.put("type", "Like")
+
+        {:ok, object}
+      else
+        {:ok, object}
+      end
     else
       {:ok, object}
     end
