@@ -49,7 +49,7 @@ defmodule Pleroma.Web.ActivityPub.MRF.BlockNotification do
       logged_blocks = String.split(log_contents, "\n")
 
       actor_name = (fn actor_uri -> Path.basename(actor_uri.path) <> "@" <> actor_uri.authority end).(URI.parse(message["actor"]))
-      log_entry = actor_name <> ":" <> recipient.nickname
+      log_entry = actor_name <> ":" <> action
 
       unless Enum.member?(logged_blocks, log_entry) do
         File.write!(log_file, log_entry <> "\n", [:append])
