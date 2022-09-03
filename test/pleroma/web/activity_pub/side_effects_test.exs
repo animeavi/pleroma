@@ -868,9 +868,7 @@ defmodule Pleroma.Web.ActivityPub.SideEffectsTest do
       ]) do
         {:ok, announce, _} = SideEffects.handle(announce)
 
-        assert called(
-                 Pleroma.Web.Streamer.stream(["user", "list"], announce)
-               )
+        assert called(Pleroma.Web.Streamer.stream(["user", "list"], announce))
 
         assert called(Pleroma.Web.Push.send(:_))
       end
