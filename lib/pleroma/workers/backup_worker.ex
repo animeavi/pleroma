@@ -14,11 +14,6 @@ defmodule Pleroma.Workers.BackupWorker do
     |> Oban.insert()
   end
 
-  @impl Oban.Worker
-  def timeout(_job) do
-    Pleroma.Config.get([:workers, :timeout, :backup], :timer.minutes(1))
-  end
-
   def schedule_deletion(backup) do
     days = Pleroma.Config.get([Backup, :purge_after_days])
     time = 60 * 60 * 24 * days
@@ -35,7 +30,7 @@ defmodule Pleroma.Workers.BackupWorker do
     |> Oban.insert()
   end
 
-  @impl true
+  @impl Oban.Worker
   def perform(%Job{
         args: %{"op" => "process", "backup_id" => backup_id, "admin_user_id" => admin_user_id}
       }) do
@@ -54,6 +49,9 @@ defmodule Pleroma.Workers.BackupWorker do
       nil -> :ok
     end
   end
+  
+  @impl Oban.Worker
+  def timeout(_job), do: :timer.seconds(900)
 
   defp has_email?(user) do
     not is_nil(user.email) and user.email != ""

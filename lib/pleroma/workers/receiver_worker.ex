@@ -20,4 +20,7 @@ defmodule Pleroma.Workers.ReceiverWorker do
       e -> e
     end
   end
+
+  @impl Oban.Worker
+  def timeout(_job), do: :timer.seconds(5)
 end
