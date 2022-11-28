@@ -152,6 +152,7 @@ defmodule Pleroma.User do
     field(:is_suggested, :boolean, default: false)
     field(:last_status_at, :naive_datetime)
     field(:language, :string)
+    field(:status_ttl_days, :integer, default: nil)
 
     embeds_one(
       :notification_settings,
@@ -530,7 +531,8 @@ defmodule Pleroma.User do
         :is_discoverable,
         :actor_type,
         :accepts_chat_messages,
-        :disclose_client
+        :disclose_client,
+        :status_ttl_days
       ]
     )
     |> unique_constraint(:nickname)
@@ -538,6 +540,7 @@ defmodule Pleroma.User do
     |> validate_length(:bio, max: bio_limit)
     |> validate_length(:name, min: 1, max: name_limit)
     |> validate_inclusion(:actor_type, ["Person", "Service"])
+    |> validate_number(:status_ttl_days, greater_than: 0)
     |> put_fields()
     |> put_emoji()
     |> put_change_if_present(:bio, &{:ok, parse_bio(&1, struct)})
