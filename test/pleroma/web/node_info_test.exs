@@ -133,7 +133,6 @@ defmodule Pleroma.Web.NodeInfoTest do
 
     default_features = [
       "pleroma_api",
-      "akkoma_api",
       "mastodon_api",
       "mastodon_api_streaming",
       "polls",
@@ -141,7 +140,8 @@ defmodule Pleroma.Web.NodeInfoTest do
       "shareable_emoji_packs",
       "multifetch",
       "pleroma_emoji_reactions",
-      "pleroma:api/v1/notifications:include_types_filter"
+      "pleroma:api/v1/notifications:include_types_filter",
+      "pleroma_chat_messages"
     ]
 
     assert MapSet.subset?(

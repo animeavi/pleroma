@@ -150,20 +150,9 @@ defmodule Pleroma.Config.TransferTaskTest do
     end
 
     test "on reboot time key" do
-      clear_config(:rate_limit)
-      insert(:config, key: :rate_limit, value: [enabled: false])
-
-      # Note that we don't actually restart Pleroma.
-      # See module Restarter.Pleroma
-      assert capture_log(fn ->
-               TransferTask.start_link([])
-
-               # TransferTask.start_link/1 is an asynchronous call.
-               # A GenServer will first finish the previous call before starting a new one.
-               # Here we do a synchronous call.
-               # That way we are sure that the previous call has finished before we continue.
-               Restarter.Pleroma.rebooted?()
-             end) =~ "pleroma restarted"
+      clear_config(:shout)
+      insert(:config, key: :shout, value: [enabled: false])
+      assert capture_log(fn -> TransferTask.start_link([]) end) =~ "pleroma restarted"
     end
 
     test "on reboot time subkey" do
@@ -183,11 +172,13 @@ defmodule Pleroma.Config.TransferTaskTest do
              end) =~ "pleroma restarted"
     end
 
+
+
     test "don't restart pleroma on reboot time key and subkey if there is false flag" do
-      clear_config(:rate_limit)
+      clear_config(:shout)
       clear_config(Pleroma.Captcha)
 
-      insert(:config, key: :rate_limit, value: [enabled: false])
+      nsert(:config, key: :shout, value: [enabled: false])
       insert(:config, key: Pleroma.Captcha, value: [seconds_valid: 60])
 
       refute String.contains?(
