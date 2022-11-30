@@ -178,7 +178,7 @@ defmodule Pleroma.Config.TransferTaskTest do
       clear_config(:shout)
       clear_config(Pleroma.Captcha)
 
-      nsert(:config, key: :shout, value: [enabled: false])
+      insert(:config, key: :shout, value: [enabled: false])
       insert(:config, key: Pleroma.Captcha, value: [seconds_valid: 60])
 
       refute String.contains?(
