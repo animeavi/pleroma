@@ -114,7 +114,7 @@ defmodule Pleroma.Mixfile do
   # Type `mix help deps` for examples and options.
   defp deps do
     [
-      {:phoenix, "~> 1.6.11"},
+      {:phoenix, "~> 1.6.15"},
       {:tzdata, "~> 1.1.1"},
       {:plug_cowboy, "~> 2.5"},
       {:phoenix_pubsub, "~> 2.1"},
