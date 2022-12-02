@@ -141,6 +141,7 @@ defmodule Pleroma.Mixfile do
       {:gun, "~> 2.0.0-rc.1", override: true},
       {:finch, "~> 0.13.0"},
       {:jason, "~> 1.2"},
+      {:jsonrs, "~> 0.2.1"},
       {:mogrify, "~> 0.9.1"},
       {:ex_aws, "~> 2.1.6"},
       {:ex_aws_s3, "~> 2.0"},
