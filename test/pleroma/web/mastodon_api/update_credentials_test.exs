@@ -104,13 +104,6 @@ defmodule Pleroma.Web.MastodonAPI.UpdateCredentialsTest do
       assert user_data["locked"] == true
     end
 
-    test "updates the user's chat acceptance status", %{conn: conn} do
-      conn = patch(conn, "/api/v1/accounts/update_credentials", %{accepts_chat_messages: "false"})
-
-      assert user_data = json_response_and_validate_schema(conn, 200)
-      assert user_data["pleroma"]["accepts_chat_messages"] == false
-    end
-
     test "updates the user's allow_following_move", %{user: user, conn: conn} do
       assert user.allow_following_move == true
 
@@ -233,7 +226,7 @@ defmodule Pleroma.Web.MastodonAPI.UpdateCredentialsTest do
     test "does not allow negative integers other than -1 for TTL", %{conn: conn} do
       conn = patch(conn, "/api/v1/accounts/update_credentials", %{"status_ttl_days" => "-2"})
 
-      assert user_data = json_response_and_validate_schema(conn, 403)
+      assert json_response_and_validate_schema(conn, 403)
     end
 
     test "updates the user's AKAs", %{conn: conn} do
