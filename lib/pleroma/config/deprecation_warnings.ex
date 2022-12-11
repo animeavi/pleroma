@@ -218,6 +218,10 @@ defmodule Pleroma.Config.DeprecationWarnings do
       {Tesla.Adapter.Finch, _} ->
         :ok
 
+      Tesla.Mock ->
+        # tests do be testing
+        :ok
+
       _anything_else ->
         Logger.error("""
         !!!CONFIG ERROR!!!
@@ -226,6 +230,7 @@ defmodule Pleroma.Config.DeprecationWarnings do
         Please ensure you either:
         \n* do not have any custom value for `:tesla, :adapter`, or
         \n* have `config :tesla, :adapter, {Tesla.Adapter.Finch, name: MyFinch}`
+        (your current value is #{inspect(http_adapter)})
         """)
 
         :error
