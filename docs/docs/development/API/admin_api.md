@@ -1064,7 +1064,6 @@ List of settings which support only full update by key:
 ```elixir
 @full_key_update [
     {:pleroma, :ecto_repos},
-    {:quack, :meta},
     {:mime, :types},
     {:cors_plug, [:max_age, :methods, :expose, :headers]},
     {:auto_linker, :opts},
@@ -1084,22 +1083,6 @@ List of settings which support only full update by subkey:
   ]
 ```
 
-*Settings without explicit key must be sended in separate config object params.*
-```elixir
-config :quack,
-  level: :debug,
-  meta: [:all],
-  ...
-```
-```json
-{
-  "configs": [
-    {"group": ":quack", "key": ":level", "value": ":debug"},
-    {"group": ":quack", "key": ":meta", "value": [":all"]},
-    ...
-  ]
-}
-```
 - Request:
 
 ```json
