@@ -281,11 +281,13 @@ defmodule Pleroma.Config.DeprecationWarningsTest do
   end
 
   test "check_http_adapter/0" do
-    clear_config([:tesla, :adapter], Gun)
+    Application.put_env(:tesla, :adapter, Gun)
 
     assert capture_log(fn ->
              DeprecationWarnings.check_http_adapter()
            end) =~ "Your config is using a custom tesla adapter"
+
+    Application.put_env(:tesla, :adapter, Tesla.Mock)
   end
 
   test "check_old_chat_shoutbox/0" do
