@@ -1557,6 +1557,10 @@ defmodule Pleroma.Web.ActivityPub.ActivityPub do
   defp normalize_image(urls) when is_list(urls), do: urls |> List.first() |> normalize_image()
   defp normalize_image(_), do: nil
 
+  defp normalize_also_known_as(aka) when is_list(aka), do: aka
+  defp normalize_also_known_as(aka) when is_binary(aka), do: [aka]
+  defp normalize_also_known_as(nil), do: []
+
   defp object_to_user_data(data, additional) do
     fields =
       data
@@ -1604,6 +1608,7 @@ defmodule Pleroma.Web.ActivityPub.ActivityPub do
     also_known_as =
       data
       |> Map.get("alsoKnownAs", [])
+      |> normalize_also_known_as()
       |> Enum.filter(fn url ->
         case URI.parse(url) do
           %URI{scheme: "http"} -> true
