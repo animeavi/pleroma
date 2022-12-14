@@ -39,7 +39,7 @@ defmodule Pleroma.Web.RichMedia.Parser do
                  # so we don't override it number_of_waiters_on_generation
                  # times, but one, obviously, can't set ttl for not-yet-created entry
                  # and Cachex doesn't support returning ttl from the fetch callback.
-                 log_error(url, reason)
+                 #log_error(url, reason)
                  {:commit, e}
              end
            end) do
