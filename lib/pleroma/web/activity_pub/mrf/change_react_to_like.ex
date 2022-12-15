@@ -24,8 +24,6 @@ defmodule Pleroma.Web.ActivityPub.MRF.ChangeReactstoLikes do
 
       # TODO: make this pull from config
       if react in ["👍", "👎", "❤️", "😆", "😮", "😢", "😩", "😭", "🔥", "⭐"] do
-        Logger.info("MRF.ChangeReactstoLikes: Changing #{inspect(react)} to a Like")
-
         object =
           object
           |> Map.put("type", "Like")
