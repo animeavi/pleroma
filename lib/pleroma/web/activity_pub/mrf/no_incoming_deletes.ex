@@ -13,10 +13,10 @@ defmodule Pleroma.Web.ActivityPub.MRF.NoIncomingDeletes do
     actor_info = URI.parse(actor)
     instance_domain = Pleroma.Config.get([Pleroma.Web.Endpoint, :url, :host])
     if (actor_info.host == instance_domain) do
-      Logger.warn("DELETE from this instance, not rejecting: #{inspect(object)}")
+      #Logger.warn("DELETE from this instance, not rejecting: #{inspect(object)}")
       {:ok, object}
     else
-      Logger.warn("DELETE rejected: #{inspect(object)}")
+      #Logger.warn("DELETE rejected: #{inspect(object)}")
       {:reject, object}
     end
   end
