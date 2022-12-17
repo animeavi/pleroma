@@ -110,6 +110,13 @@ defmodule Mix.Tasks.Pleroma.Database do
     end
   end
 
+  def run(["prune_task"]) do
+    start_pleroma()
+
+    nil
+    |> Pleroma.Workers.Cron.PruneDatabaseWorker.perform()
+  end
+
   def run(["fix_likes_collections"]) do
     start_pleroma()
 

@@ -6,16 +6,42 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## Unreleased
 
+### Removed
+- Non-finch HTTP adapters
+- Legacy redirect from /api/pleroma/admin to /api/v1/pleroma/admin
+
+### Changed
+- Return HTTP error 413 when uploading an avatar or banner that's above the configured upload limit instead of a 500.
+
+### Upgrade notes
+- Ensure `config :tesla, :adapter` is either unset, or set to `{Tesla.Adapter.Finch, name: MyFinch}` in your .exs config
+
+## 2022.12
+
 ## Added
 - Config: HTTP timeout options, :pool\_timeout and :receive\_timeout
 - Added statistic gathering about instances which do/don't have signed fetches when they request from us
 - Ability to set a default post expiry time, after which the post will be deleted. If used in concert with ActivityExpiration MRF, the expiry which comes _sooner_ will be applied.
+- Regular task to prune local transient activities
+- Task to manually run the transient prune job (pleroma.database prune\_task)
+- Ability to follow hashtags
+- Option to extend `reject` in MRF-Simple to apply to entire threads, where the originating instance is rejected
+- Extra information to failed HTTP requests
 
 ## Changed
 - MastoAPI: Accept BooleanLike input on `/api/v1/accounts/:id/follow` (fixes follows with mastodon.py)
 - Relays from akkoma are now off by default
 - NormalizeMarkup MRF is now on by default
 - Follow/Block/Mute imports now spin off into *n* tasks to avoid the oban timeout
+- Transient activities recieved from remote servers are no longer persisted in the database
+- Overhauled static-fe view for logged-out users
+- Blocked instances will now not be sent _any_ requests, even fetch ones that would get rejected by MRF anyhow
+
+## Removed
+- FollowBotPolicy
+
+## Upgrade Notes
+- If you have an old instance, you will probably want to run `mix pleroma.database prune_task` in the foreground to catch it up with the history of your instance.
 
 ## 2022.11
 
@@ -101,6 +127,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Removed
 - Scrobbling support
+  - `/api/v1/pleroma/scrobble`
+  - `/api/v1/pleroma/accounts/{id}/scrobbles`
+- Deprecated endpoints
+  - `/api/v1/pleroma/chats`
+  - `/api/v1/notifications/dismiss`
+  - `/api/v1/search`
+  - `/api/v1/statuses/{id}/card` 
+- Chats, they were half-baked. Just use PMs.
+- Prometheus, it causes massive slowdown
 
 ## 2022.07
 

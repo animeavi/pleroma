@@ -203,6 +203,8 @@ defmodule Pleroma.Application do
     ]
   end
 
+  @spec task_children(atom()) :: [map()]
+
   defp shout_child(true) do
     [
       Pleroma.Web.ShoutChannel.ShoutChannelState,
@@ -237,6 +239,7 @@ defmodule Pleroma.Application do
     ]
   end
 
+  @spec elasticsearch_children :: [Pleroma.Search.Elasticsearch.Cluster]
   def elasticsearch_children do
     config = Config.get([Pleroma.Search, :module])
 

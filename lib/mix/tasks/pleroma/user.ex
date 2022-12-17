@@ -378,9 +378,11 @@ defmodule Mix.Tasks.Pleroma.User do
   def run(["show", nickname]) do
     start_pleroma()
 
-    nickname
-    |> User.get_cached_by_nickname()
-    |> IO.inspect()
+    user =
+      nickname
+      |> User.get_cached_by_nickname()
+
+    shell_info("#{inspect(user)}")
   end
 
   def run(["send_confirmation", nickname]) do
@@ -389,7 +391,6 @@ defmodule Mix.Tasks.Pleroma.User do
     with %User{} = user <- User.get_cached_by_nickname(nickname) do
       user
       |> Pleroma.Emails.UserEmail.account_confirmation_email()
-      |> IO.inspect()
       |> Pleroma.Emails.Mailer.deliver!()
 
       shell_info("#{nickname}'s email sent")
@@ -465,15 +466,21 @@ defmodule Mix.Tasks.Pleroma.User do
 
     with %User{local: true} = user <- User.get_cached_by_nickname(nickname) do
       blocks = User.following_ap_ids(user)
-      IO.inspect(blocks, limit: :infinity)
+      IO.puts("#{inspect(blocks)}")
     end
   end
 
   def run(["timeline_query", nickname]) do
     start_pleroma()
+
     params = %{local: true}
 
     with %User{local: true} = user <- User.get_cached_by_nickname(nickname) do
+      followed_hashtags =
+        user
+        |> User.followed_hashtags()
+        |> Enum.map(& &1.id)
+
       params =
         params
         |> Map.put(:type, ["Create", "Announce"])
@@ -484,6 +491,7 @@ defmodule Mix.Tasks.Pleroma.User do
         |> Map.put(:announce_filtering_user, user)
         |> Map.put(:user, user)
         |> Map.put(:local_only, params[:local])
+        |> Map.put(:hashtags, followed_hashtags)
         |> Map.delete(:local)
 
       _activities =

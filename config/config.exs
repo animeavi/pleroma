@@ -163,11 +163,6 @@ config :logger, :ex_syslogger,
   format: "$metadata[$level] $message",
   metadata: [:request_id]
 
-config :quack,
-  level: :warn,
-  meta: [:all],
-  webhook_url: "https://hooks.slack.com/services/YOUR-KEY-HERE"
-
 config :mime, :types, %{
   "application/xml" => ["xml"],
   "application/xrd+xml" => ["xrd+xml"],
@@ -396,7 +391,8 @@ config :pleroma, :mrf_simple,
   accept: [],
   avatar_removal: [],
   banner_removal: [],
-  reject_deletes: []
+  reject_deletes: [],
+  handle_threads: true
 
 config :pleroma, :mrf_keyword,
   reject: [],
@@ -574,7 +570,8 @@ config :pleroma, Oban,
     new_users_digest: 1,
     mute_expire: 5,
     search_indexing: 10,
-    nodeinfo_fetcher: 1
+    nodeinfo_fetcher: 1,
+    database_prune: 1
   ],
   plugins: [
     Oban.Plugins.Pruner,
@@ -582,7 +579,8 @@ config :pleroma, Oban,
   ],
   crontab: [
     {"0 0 * * 0", Pleroma.Workers.Cron.DigestEmailsWorker},
-    {"0 0 * * *", Pleroma.Workers.Cron.NewUsersDigestWorker}
+    {"0 0 * * *", Pleroma.Workers.Cron.NewUsersDigestWorker},
+    {"0 3 * * *", Pleroma.Workers.Cron.PruneDatabaseWorker}
   ]
 
 config :pleroma, :workers,
@@ -610,7 +608,8 @@ config :pleroma, :workers,
     new_users_digest: :timer.seconds(10),
     mute_expire: :timer.seconds(5),
     search_indexing: :timer.seconds(5),
-    nodeinfo_fetcher: :timer.seconds(10)
+    nodeinfo_fetcher: :timer.seconds(10),
+    database_prune: :timer.minutes(10)
   ]
 
 config :pleroma, Pleroma.Formatter,
@@ -655,6 +654,10 @@ config :ueberauth,
 config :pleroma, :auth, oauth_consumer_strategies: oauth_consumer_strategies
 
 config :pleroma, Pleroma.Emails.Mailer, adapter: Swoosh.Adapters.Sendmail, enabled: false
+
+config :swoosh,
+  api_client: Swoosh.ApiClient.Finch,
+  finch_name: MyFinch
 
 config :pleroma, Pleroma.Emails.UserEmail,
   logo: nil,

@@ -691,8 +691,8 @@ config :pleroma, :config_description, [
         key: :public,
         type: :boolean,
         description:
-          "Makes the client API in authenticated mode-only except for user-profiles." <>
-            " Useful for disabling the Local Timeline and The Whole Known Network. " <>
+          "Switching this on will allow unauthenticated users access to all public resources on your instance" <>
+            " Switching it off is useful for disabling the Local Timeline and The Whole Known Network. " <>
             " Note: when setting to `false`, please also check `:restrict_unauthenticated` setting."
       },
       %{
@@ -723,7 +723,8 @@ config :pleroma, :config_description, [
           "text/plain",
           "text/html",
           "text/markdown",
-          "text/bbcode"
+          "text/bbcode",
+          "text/x.misskeymarkdown"
         ]
       },
       %{
@@ -1147,45 +1148,6 @@ config :pleroma, :config_description, [
     ]
   },
   %{
-    group: :quack,
-    type: :group,
-    label: "Quack Logger",
-    description: "Quack-related settings",
-    children: [
-      %{
-        key: :level,
-        type: {:dropdown, :atom},
-        description: "Log level",
-        suggestions: [:debug, :info, :warn, :error]
-      },
-      %{
-        key: :meta,
-        type: {:list, :atom},
-        description: "Configure which metadata you want to report on",
-        suggestions: [
-          :application,
-          :module,
-          :file,
-          :function,
-          :line,
-          :pid,
-          :crash_reason,
-          :initial_call,
-          :registered_name,
-          :all,
-          :none
-        ]
-      },
-      %{
-        key: :webhook_url,
-        label: "Webhook URL",
-        type: :string,
-        description: "Configure the Slack incoming webhook",
-        suggestions: ["https://hooks.slack.com/services/YOUR-KEY-HERE"]
-      }
-    ]
-  },
-  %{
     group: :pleroma,
     key: :frontend_configurations,
     type: :group,
@@ -1323,7 +1285,13 @@ config :pleroma, :config_description, [
             label: "Post Content Type",
             type: {:dropdown, :atom},
             description: "Default post formatting option",
-            suggestions: ["text/plain", "text/html", "text/markdown", "text/bbcode"]
+            suggestions: [
+              "text/plain",
+              "text/html",
+              "text/markdown",
+              "text/bbcode",
+              "text/x.misskeymarkdown"
+            ]
           },
           %{
             key: :redirectRootNoLogin,
@@ -3048,8 +3016,7 @@ config :pleroma, :config_description, [
     key: :restrict_unauthenticated,
     label: "Restrict Unauthenticated",
     type: :group,
-    description:
-      "Disallow viewing timelines, user profiles and statuses for unauthenticated users.",
+    description: "Disallow unauthenticated viewing of timelines, user profiles and statuses.",
     children: [
       %{
         key: :timelines,
@@ -3059,12 +3026,12 @@ config :pleroma, :config_description, [
           %{
             key: :local,
             type: :boolean,
-            description: "Disallow view public timeline."
+            description: "Disallow viewing the public timeline."
           },
           %{
             key: :federated,
             type: :boolean,
-            description: "Disallow view federated timeline."
+            description: "Disallow viewing the whole known network timeline."
           }
         ]
       },
@@ -3076,29 +3043,29 @@ config :pleroma, :config_description, [
           %{
             key: :local,
             type: :boolean,
-            description: "Disallow view local user profiles."
+            description: "Disallow viewing local user profiles."
           },
           %{
             key: :remote,
             type: :boolean,
-            description: "Disallow view remote user profiles."
+            description: "Disallow viewing remote user profiles."
           }
         ]
       },
       %{
         key: :activities,
         type: :map,
-        description: "Settings for statuses.",
+        description: "Settings for posts.",
         children: [
           %{
             key: :local,
             type: :boolean,
-            description: "Disallow view local statuses."
+            description: "Disallow viewing local posts."
           },
           %{
             key: :remote,
             type: :boolean,
-            description: "Disallow view remote statuses."
+            description: "Disallow viewing remote posts."
           }
         ]
       }
