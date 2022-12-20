@@ -260,7 +260,7 @@ config :pleroma, :instance,
   privileged_staff: false,
   local_bubble: [],
   max_frontend_settings_json_chars: 100_000,
-  export_prometheus_metrics: true
+  export_prometheus_metrics: false
 
 config :pleroma, :welcome,
   direct_message: [
