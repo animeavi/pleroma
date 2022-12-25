@@ -4,7 +4,6 @@
 
 defmodule Pleroma.Web.Router do
   use Pleroma.Web, :router
-  import Phoenix.LiveDashboard.Router
 
   pipeline :accepts_html do
     plug(:accepts, ["html"])
@@ -490,7 +489,6 @@ defmodule Pleroma.Web.Router do
 
   scope "/api/v1/akkoma", Pleroma.Web.AkkomaAPI do
     pipe_through(:authenticated_api)
-    get("/metrics", MetricsController, :show)
     get("/translation/languages", TranslationController, :languages)
 
     get("/frontend_settings/:frontend_name", FrontendSettingsController, :list_profiles)
@@ -892,15 +890,6 @@ defmodule Pleroma.Web.Router do
 
       forward("/mailbox", Plug.Swoosh.MailboxPreview, base_path: "/dev/mailbox")
     end
-  end
-
-  scope "/" do
-    pipe_through([:pleroma_html, :authenticate, :require_admin])
-
-    live_dashboard("/phoenix/live_dashboard",
-      metrics: {Pleroma.Web.Telemetry, :live_dashboard_metrics},
-      csp_nonce_assign_key: :csp_nonce
-    )
   end
 
   # Test-only routes needed to test action dispatching and plug chain execution
