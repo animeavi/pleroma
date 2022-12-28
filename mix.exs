@@ -124,7 +124,7 @@ defmodule Pleroma.Mixfile do
       {:postgrex, ">= 0.16.3"},
       {:oban, "~> 2.13.6"},
       {:gettext, "~> 0.20.0"},
-      {:bcrypt_elixir, "~> 2.2"},
+      {:bcrypt_elixir, "~> 3.0"},
       {:fast_sanitize, "~> 0.2.3"},
       {:html_entities, "~> 0.5"},
       {:phoenix_html, "~> 3.2"},
