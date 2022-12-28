@@ -151,7 +151,7 @@ defmodule Pleroma.Mixfile do
       {:swoosh, "~> 1.0"},
       # for gmail adapter in swoosh
       {:mail, ">= 0.0.0"},
-      {:phoenix_swoosh, "~> 0.3"},
+      {:phoenix_swoosh, "~> 1.1"},
       {:gen_smtp, "~> 1.2"},
       {:ex_syslogger, "~> 2.0"},
       {:floki, "~> 0.27"},
