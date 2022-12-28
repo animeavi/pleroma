@@ -146,7 +146,7 @@ defmodule Pleroma.Mixfile do
       {:crypt,
        git: "https://github.com/msantos/crypt.git",
        ref: "f75cd55325e33cbea198fb41fe41871392f8fb76"},
-      {:cors_plug, "~> 2.0"},
+      {:cors_plug, "~> 3.0"},
       {:web_push_encryption, "~> 0.3.1"},
       {:swoosh, "~> 1.0"},
       # for gmail adapter in swoosh
