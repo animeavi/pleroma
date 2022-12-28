@@ -138,7 +138,7 @@ defmodule Pleroma.Mixfile do
       {:jsonrs, "~> 0.2.1"},
       {:trailing_format_plug, "~> 0.0.7"},
       {:mogrify, "~> 0.9.1"},
-      {:ex_aws, "~> 2.1.6"},
+      {:ex_aws, "~> 2.4"},
       {:ex_aws_s3, "~> 2.0"},
       {:sweet_xml, "~> 0.7.2"},
       {:earmark, "~> 1.4.15"},
