@@ -130,7 +130,7 @@ defmodule Pleroma.Mixfile do
       {:phoenix_html, "~> 3.2"},
       {:calendar, "~> 1.0"},
       {:cachex, "~> 3.4"},
-      {:tesla, "~> 1.4.4"},
+      {:tesla, "~> 1.5"},
       {:castore, "~> 0.1"},
       {:cowlib, "~> 2.9"},
       {:finch, "~> 0.14.0"},
