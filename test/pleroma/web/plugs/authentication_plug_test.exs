@@ -1,5 +1,5 @@
 # Pleroma: A lightweight social networking server
-# Copyright © 2017-2022 Pleroma Authors <https://pleroma.social/>
+# Copyright © 2017-2021 Pleroma Authors <https://pleroma.social/>
 # SPDX-License-Identifier: AGPL-3.0-only
 
 defmodule Pleroma.Web.Plugs.AuthenticationPlugTest do
@@ -17,7 +17,7 @@ defmodule Pleroma.Web.Plugs.AuthenticationPlugTest do
     user = %User{
       id: 1,
       name: "dude",
-      password_hash: Pleroma.Password.Pbkdf2.hash_pwd_salt("guy")
+      password_hash: Pleroma.Password.hash_pwd_salt("guy")
     }
 
     conn =
@@ -52,7 +52,7 @@ defmodule Pleroma.Web.Plugs.AuthenticationPlugTest do
     assert PlugHelper.plug_skipped?(conn, OAuthScopesPlug)
   end
 
-  test "with a bcrypt hash, it updates to a pkbdf2 hash", %{conn: conn} do
+  test "with a bcrypt hash, it updates to an argon2 hash", %{conn: conn} do
     user = insert(:user, password_hash: Bcrypt.hash_pwd_salt("123"))
     assert "$2" <> _ = user.password_hash
 
@@ -67,7 +67,25 @@ defmodule Pleroma.Web.Plugs.AuthenticationPlugTest do
     assert PlugHelper.plug_skipped?(conn, OAuthScopesPlug)
 
     user = User.get_by_id(user.id)
+    assert "$argon2" <> _ = user.password_hash
+  end
+
+  test "with a pbkdf2 hash, it updates to an argon2 hash", %{conn: conn} do
+    user = insert(:user, password_hash: Pleroma.Password.Pbkdf2.hash_pwd_salt("123"))
     assert "$pbkdf2" <> _ = user.password_hash
+
+    conn =
+      conn
+      |> assign(:auth_user, user)
+      |> assign(:auth_credentials, %{password: "123"})
+      |> AuthenticationPlug.call(%{})
+
+    assert conn.assigns.user.id == conn.assigns.auth_user.id
+    assert conn.assigns.token == nil
+    assert PlugHelper.plug_skipped?(conn, OAuthScopesPlug)
+
+    user = User.get_by_id(user.id)
+    assert "$argon2" <> _ = user.password_hash
   end
 
   describe "checkpw/2" do
@@ -81,6 +99,14 @@ defmodule Pleroma.Web.Plugs.AuthenticationPlugTest do
 
     test "check bcrypt hash" do
       hash = "$2a$10$uyhC/R/zoE1ndwwCtMusK.TLVzkQ/Ugsbqp3uXI.CTTz0gBw.24jS"
+
+      assert AuthenticationPlug.checkpw("password", hash)
+      refute AuthenticationPlug.checkpw("password1", hash)
+    end
+
+    test "check argon2 hash" do
+      hash =
+        "$argon2id$v=19$m=65536,t=8,p=2$zEMMsTuK5KkL5AFWbX7jyQ$VyaQD7PF6e9btz0oH1YiAkWwIGZ7WNDZP8l+a/O171g"
 
       assert AuthenticationPlug.checkpw("password", hash)
       refute AuthenticationPlug.checkpw("password1", hash)
