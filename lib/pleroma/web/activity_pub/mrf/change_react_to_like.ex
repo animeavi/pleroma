@@ -1,5 +1,5 @@
 # Pleroma: A lightweight social networking server
-# Copyright © 2017-2022 Pleroma Authors <https://pleroma.social/>
+# Copyright © 2017-2023 Pleroma Authors <https://pleroma.social/>
 # SPDX-License-Identifier: AGPL-3.0-only
 
 defmodule Pleroma.Web.ActivityPub.MRF.ChangeReactstoLikes do
@@ -59,7 +59,7 @@ defmodule Pleroma.Web.ActivityPub.MRF.ChangeReactstoLikes do
       react = object["content"]
 
       # TODO: make this pull from config
-      if react in ["👍", "👎", "❤️", "😆", "😮", "😢", "😩", "😭", "🔥", "⭐", "🤔", "😡"] do
+      if react in ["👍", "👎", "❤️", "😆", "😮", "😢", "😩", "😭", "🔥", "🤔", "😡"] do
         object =
           object
           |> Map.put("type", "Like")
