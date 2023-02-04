@@ -37,6 +37,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Simplified HTTP signature processing
 - Rich media will now hard-exit after 5 seconds, to prevent timeline hangs
 - Follow requests are now paginated, matches mastodon API spec, so use the Link header to paginate.
+- `internal.fetch` and `relay` actors are now represented with the actor type `Application`
 
 ### Fixed 
 - /api/v1/accounts/lookup will now respect restrict\_unauthenticated

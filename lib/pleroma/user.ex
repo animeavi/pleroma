@@ -2030,6 +2030,7 @@ defmodule Pleroma.User do
     %User{
       invisible: true,
       local: true,
+      actor_type: "Application",
       ap_id: uri,
       nickname: nickname,
       follower_address: uri <> "/followers"
