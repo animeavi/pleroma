@@ -36,7 +36,7 @@ defmodule Pleroma.Web.ActivityPub.MRF.ChangeReactstoLikes do
     ]
 
     skip_hosts = [""]
-    actor = object["object"]["actor"]
+    actor = object["actor"]
     host = URI.parse(actor).host
 
     cond do
