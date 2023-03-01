@@ -13,6 +13,9 @@ defmodule Pleroma.Workers.ReceiverWorker do
       {:ok, res}
     else
       {:error, :origin_containment_failed} -> {:discard, :origin_containment_failed}
+      {:error, :already_present} -> {:discard, :already_present}
+      {:error, {:validate_object, reason}} -> {:discard, reason}
+      {:error, {:error, {:validate, reason}}} -> {:discard, reason}
       {:error, {:reject, reason}} -> {:discard, reason}
       e -> e
     end
