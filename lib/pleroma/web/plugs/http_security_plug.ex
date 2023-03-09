@@ -121,6 +121,8 @@ defmodule Pleroma.Web.Plugs.HTTPSecurityPlug do
         "script-src 'self' '#{nonce_tag}'"
       end
 
+    script_src = if Mix.env() == :dev, do: [script_src, " 'unsafe-eval'"], else: script_src
+
     report = if report_uri, do: ["report-uri ", report_uri, ";report-to csp-endpoint"]
     insecure = if scheme == "https", do: "upgrade-insecure-requests"
 
