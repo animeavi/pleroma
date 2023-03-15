@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 
 defmodule Pleroma.Web.StreamerView do
+  require Logger
   use Pleroma.Web, :view
 
   alias Pleroma.Activity
