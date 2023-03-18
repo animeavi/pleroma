@@ -3049,6 +3049,11 @@ config :pleroma, :config_description, [
             key: :federated,
             type: :boolean,
             description: "Disallow viewing the whole known network timeline."
+          },
+          %{
+            key: :bubble,
+            type: :boolean,
+            description: "Disallow viewing the bubble timeline."
           }
         ]
       },
