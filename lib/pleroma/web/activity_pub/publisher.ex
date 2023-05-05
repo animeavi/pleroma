@@ -212,7 +212,6 @@ defmodule Pleroma.Web.ActivityPub.Publisher do
 
     inboxes =
       recipients
-      |> Enum.filter(&User.ap_enabled?/1)
       |> Enum.map(fn actor -> actor.inbox end)
       |> Enum.filter(fn inbox -> should_federate?(inbox) end)
       |> Instances.filter_reachable()
@@ -254,7 +253,6 @@ defmodule Pleroma.Web.ActivityPub.Publisher do
     json = Jason.encode!(data)
 
     recipients(actor, activity)
-    |> Enum.filter(fn user -> User.ap_enabled?(user) end)
     |> Enum.map(fn %User{} = user ->
       determine_inbox(activity, user)
     end)
