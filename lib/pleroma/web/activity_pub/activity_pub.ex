@@ -1643,7 +1643,6 @@ defmodule Pleroma.Web.ActivityPub.ActivityPub do
     %{
       ap_id: data["id"],
       uri: get_actor_url(data["url"]),
-      ap_enabled: true,
       banner: normalize_image(data["image"]),
       background: normalize_image(data["backgroundUrl"]),
       fields: fields,
@@ -1817,8 +1816,8 @@ defmodule Pleroma.Web.ActivityPub.ActivityPub do
       |> Map.get("orderedItems")
       |> Map.new(fn %{"id" => object_ap_id} -> {object_ap_id, NaiveDateTime.utc_now()} end)
     else
-      _e ->
-        #Logger.error("Could not decode featured collection at fetch #{first}, #{inspect(_e)}")
+      e ->
+        #Logger.error("Could not decode featured collection at fetch #{first}, #{inspect(e)}")
         {:ok, %{}}
     end
   end
@@ -1852,8 +1851,8 @@ defmodule Pleroma.Web.ActivityPub.ActivityPub do
     with {:ok, data} <- Fetcher.fetch_and_contain_remote_object_from_id(ap_id) do
       {:ok, pin_data_from_featured_collection(data)}
     else
-      _e ->
-        #Logger.error("Could not decode featured collection at fetch #{ap_id}, #{inspect(_e)}")
+      e ->
+        #Logger.error("Could not decode featured collection at fetch #{ap_id}, #{inspect(e)}")
         {:ok, %{}}
     end
   end

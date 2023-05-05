@@ -127,7 +127,6 @@ defmodule Pleroma.User do
     field(:domain_blocks, {:array, :string}, default: [])
     field(:is_active, :boolean, default: true)
     field(:no_rich_text, :boolean, default: false)
-    field(:ap_enabled, :boolean, default: false)
     field(:is_moderator, :boolean, default: false)
     field(:is_admin, :boolean, default: false)
     field(:show_role, :boolean, default: true)
@@ -478,7 +477,6 @@ defmodule Pleroma.User do
         :shared_inbox,
         :nickname,
         :avatar,
-        :ap_enabled,
         :banner,
         :background,
         :is_locked,
@@ -1827,7 +1825,6 @@ defmodule Pleroma.User do
       confirmation_token: nil,
       domain_blocks: [],
       is_active: false,
-      ap_enabled: false,
       is_moderator: false,
       is_admin: false,
       mascot: nil,
