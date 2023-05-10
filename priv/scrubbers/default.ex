@@ -59,6 +59,7 @@ defmodule Pleroma.HTML.Scrubber.Default do
   Meta.allow_tag_with_this_attribute_values(:span, "class", [
     "h-card",
     "quote-inline",
+    "recipients-inline",
     "mfm",
     "mfm _mfm_tada_",
     "mfm _mfm_jelly_",

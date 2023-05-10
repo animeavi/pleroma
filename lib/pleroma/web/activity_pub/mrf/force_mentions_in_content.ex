@@ -74,11 +74,6 @@ defmodule Pleroma.Web.ActivityPub.MRF.ForceMentionsInContent do
     end)
   end
 
-  defp is_remote(host) do
-    my_host = Pleroma.Config.get([Pleroma.Web.Endpoint, :url, :host])
-    my_host != host
-  end
-
   @impl true
   def filter(
         %{
@@ -87,60 +82,49 @@ defmodule Pleroma.Web.ActivityPub.MRF.ForceMentionsInContent do
         } = object
       )
       when type in ["Create", "Update"] and is_list(to) and is_binary(in_reply_to) do
-    actor = object["object"]["actor"]
-    host = URI.parse(actor).host
+    # image-only posts from pleroma apparently reach this MRF without the content field
+    content = object["object"]["content"] || ""
 
-    if is_remote(host) do
-      # image-only posts from pleroma apparently reach this MRF without the content field
-      content = object["object"]["content"] || ""
+    # Get the replied-to user for sorting
+    replied_to_user = get_replied_to_user(object["object"])
 
-      # Get the replied-to user for sorting
-      replied_to_user = get_replied_to_user(object["object"])
+    mention_users =
+      to
+      |> clean_recipients(object)
+      |> Enum.map(&User.get_cached_by_ap_id/1)
+      |> Enum.reject(&is_nil/1)
+      |> sort_replied_user(replied_to_user)
 
-      mention_users =
-        to
-        |> clean_recipients(object)
-        |> Enum.map(&User.get_cached_by_ap_id/1)
-        |> Enum.reject(&is_nil/1)
-        |> sort_replied_user(replied_to_user)
+    explicitly_mentioned_uris = extract_mention_uris_from_content(content)
 
-      explicitly_mentioned_uris = extract_mention_uris_from_content(content)
+    added_mentions =
+      Enum.reduce(mention_users, "", fn %User{ap_id: uri} = user, acc ->
+        unless uri in explicitly_mentioned_uris do
+          acc <> Formatter.mention_tag(user, %{mentions_format: :compact}) <> " "
+        else
+          acc
+        end
+      end)
 
-      if Enum.empty?(explicitly_mentioned_uris) do
-        added_mentions =
-          Enum.reduce(mention_users, "", fn %User{ap_id: uri} = user, acc ->
-            unless uri in explicitly_mentioned_uris do
-              acc <> Formatter.mention_from_user(user, %{mentions_format: :compact}) <> " "
-            else
-              acc
-            end
-          end)
+    recipients_inline =
+      if added_mentions != "",
+        do: "#{added_mentions}",
+        else: ""
 
-        recipients_inline =
-          if added_mentions != "",
-            do: "<span class=\"recipients-inline\">#{added_mentions}</span>",
-            else: ""
+    content =
+      cond do
+        # For Markdown posts, insert the mentions inside the first <p> tag
+        recipients_inline != "" && String.starts_with?(content, "<p>") ->
+          "<p>" <> recipients_inline <> String.trim_leading(content, "<p>")
 
-        content =
-          cond do
-            # For Markdown posts, insert the mentions inside the first <p> tag
-            recipients_inline != "" && String.starts_with?(content, "<p>") ->
-              "<p>" <> recipients_inline <> String.trim_leading(content, "<p>")
+        recipients_inline != "" ->
+          recipients_inline <> content
 
-            recipients_inline != "" ->
-              recipients_inline <> content
-
-            true ->
-              content
-          end
-
-        {:ok, put_in(object["object"]["content"], content)}
-      else
-        {:ok, object}
+        true ->
+          content
       end
-    else
-      {:ok, object}
-    end
+
+    {:ok, put_in(object["object"]["content"], content)}
   end
 
   @impl true
