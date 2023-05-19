@@ -31,7 +31,7 @@ defmodule Pleroma.Web.RichMedia.Parser do
                {:ok, _} = res ->
                  {:commit, res}
 
-               {:error, reason} = e ->
+               {:error, _reason} = e ->
                  # Unfortunately we have to log errors here, instead of doing that
                  # along with ttl setting at the bottom. Otherwise we can get log spam
                  # if more than one process was waiting for the rich media card
@@ -39,7 +39,7 @@ defmodule Pleroma.Web.RichMedia.Parser do
                  # so we don't override it number_of_waiters_on_generation
                  # times, but one, obviously, can't set ttl for not-yet-created entry
                  # and Cachex doesn't support returning ttl from the fetch callback.
-                 #log_error(url, reason)
+                 #log_error(url, _reason)
                  {:commit, e}
              end
            end) do
@@ -70,13 +70,13 @@ defmodule Pleroma.Web.RichMedia.Parser do
       :ok
     end
 
-    defp log_error(url, {:invalid_metadata, data}) do
-      Logger.debug(fn -> "Incomplete or invalid metadata for #{url}: #{inspect(data)}" end)
-    end
+    #defp log_error(url, {:invalid_metadata, data}) do
+    #  Logger.debug(fn -> "Incomplete or invalid metadata for #{url}: #{inspect(data)}" end)
+    #end
 
-    defp log_error(url, reason) do
-      Logger.warn(fn -> "Rich media error for #{url}: #{inspect(reason)}" end)
-    end
+    #defp log_error(url, reason) do
+    #  Logger.warn(fn -> "Rich media error for #{url}: #{inspect(reason)}" end)
+    #end
   end
 
   @doc """

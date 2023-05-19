@@ -212,10 +212,6 @@ defmodule Pleroma.Web.ActivityPub.ObjectValidator do
 
   def validate(o, m), do: {:error, {:validator_not_set, {o, m}}}
 
-  def cast_and_apply(%{"type" => "ChatMessage"} = object) do
-    ChatMessageValidator.cast_and_apply(object)
-  end
-
   def cast_and_apply_and_stringify_with_history(object) do
     do_separate_with_history(object, fn object ->
       with {:ok, object_data} <- cast_and_apply(object),
@@ -223,6 +219,10 @@ defmodule Pleroma.Web.ActivityPub.ObjectValidator do
         {:ok, object_data}
       end
     end)
+  end
+
+  def cast_and_apply(%{"type" => "ChatMessage"} = object) do
+    ChatMessageValidator.cast_and_apply(object)
   end
 
   def cast_and_apply(%{"type" => "Question"} = object) do

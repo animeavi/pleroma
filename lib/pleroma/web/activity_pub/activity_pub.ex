@@ -1300,18 +1300,6 @@ defmodule Pleroma.Web.ActivityPub.ActivityPub do
     end
   end
 
-  defp exclude_chat_messages(query, %{include_chat_messages: true}), do: query
-
-  defp exclude_chat_messages(query, _) do
-    if has_named_binding?(query, :object) do
-      from([activity, object: o] in query,
-        where: fragment("not(?->>'type' = ?)", o.data, "ChatMessage")
-      )
-    else
-      query
-    end
-  end
-
   defp exclude_invisible_actors(query, %{type: "Flag"}), do: query
   defp exclude_invisible_actors(query, %{invisible_actors: true}), do: query
 
@@ -1798,8 +1786,8 @@ defmodule Pleroma.Web.ActivityPub.ActivityPub do
       |> Map.get("orderedItems")
       |> Map.new(fn %{"id" => object_ap_id} -> {object_ap_id, NaiveDateTime.utc_now()} end)
     else
-      e ->
-        #Logger.error("Could not decode featured collection at fetch #{first}, #{inspect(e)}")
+      _e ->
+        #Logger.error("Could not decode featured collection at fetch #{first}, #{inspect(_e)}")
         {:ok, %{}}
     end
   end
@@ -1828,8 +1816,8 @@ defmodule Pleroma.Web.ActivityPub.ActivityPub do
     with {:ok, data} <- Fetcher.fetch_and_contain_remote_object_from_id(ap_id) do
       {:ok, pin_data_from_featured_collection(data)}
     else
-      e ->
-        #Logger.error("Could not decode featured collection at fetch #{ap_id}, #{inspect(e)}")
+      _e ->
+        #Logger.error("Could not decode featured collection at fetch #{ap_id}, #{inspect(_e)}")
         {:ok, %{}}
     end
   end

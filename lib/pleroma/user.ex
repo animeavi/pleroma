@@ -1983,8 +1983,8 @@ defmodule Pleroma.User do
       {%User{} = user, _} ->
         {:ok, user}
 
-      e ->
-        #Logger.error("Could not fetch user #{ap_id}, #{inspect(e)}")
+      _e ->
+        #Logger.error("Could not fetch user #{ap_id}, #{inspect(_e)}")
         {:error, :not_found}
     end
   end

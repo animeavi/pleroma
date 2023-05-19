@@ -408,41 +408,6 @@ defmodule Pleroma.Web.ActivityPub.SideEffects do
     {:ok, object, meta}
   end
 
-  def handle_object_creation(%{"type" => "ChatMessage"} = object, _activity, meta) do
-    with {:ok, object, meta} <- Pipeline.common_pipeline(object, meta) do
-      actor = User.get_cached_by_ap_id(object.data["actor"])
-      recipient = User.get_cached_by_ap_id(hd(object.data["to"]))
-
-      streamables =
-        [[actor, recipient], [recipient, actor]]
-        |> Enum.uniq()
-        |> Enum.map(fn [user, other_user] ->
-          if user.local do
-            {:ok, chat} = Chat.bump_or_create(user.id, other_user.ap_id)
-            {:ok, cm_ref} = MessageReference.create(chat, object, user.ap_id != actor.ap_id)
-
-            @cachex.put(
-              :chat_message_id_idempotency_key_cache,
-              cm_ref.id,
-              meta[:idempotency_key]
-            )
-
-            {
-              ["user", "user:pleroma_chat"],
-              {user, %{cm_ref | chat: chat, object: object}}
-            }
-          end
-        end)
-        |> Enum.filter(& &1)
-
-      meta =
-        meta
-        |> add_streamables(streamables)
-
-      {:ok, object, meta}
-    end
-  end
-
   defp handle_update_user(
          %{data: %{"type" => "Update", "object" => updated_object}} = object,
          meta
@@ -514,6 +479,41 @@ defmodule Pleroma.Web.ActivityPub.SideEffects do
     end
 
     {:ok, object, meta}
+  end
+
+  def handle_object_creation(%{"type" => "ChatMessage"} = object, _activity, meta) do
+    with {:ok, object, meta} <- Pipeline.common_pipeline(object, meta) do
+      actor = User.get_cached_by_ap_id(object.data["actor"])
+      recipient = User.get_cached_by_ap_id(hd(object.data["to"]))
+
+      streamables =
+        [[actor, recipient], [recipient, actor]]
+        |> Enum.uniq()
+        |> Enum.map(fn [user, other_user] ->
+          if user.local do
+            {:ok, chat} = Chat.bump_or_create(user.id, other_user.ap_id)
+            {:ok, cm_ref} = MessageReference.create(chat, object, user.ap_id != actor.ap_id)
+
+            @cachex.put(
+              :chat_message_id_idempotency_key_cache,
+              cm_ref.id,
+              meta[:idempotency_key]
+            )
+
+            {
+              ["user", "user:pleroma_chat"],
+              {user, %{cm_ref | chat: chat, object: object}}
+            }
+          end
+        end)
+        |> Enum.filter(& &1)
+
+      meta =
+        meta
+        |> add_streamables(streamables)
+
+      {:ok, object, meta}
+    end
   end
 
   def handle_object_creation(%{"type" => "Question"} = object, activity, meta) do

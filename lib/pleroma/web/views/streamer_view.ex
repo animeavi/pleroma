@@ -58,20 +58,6 @@ defmodule Pleroma.Web.StreamerView do
     |> Jason.encode!()
   end
 
-  def render("update.json", %Activity{} = activity, topic) do
-    %{
-      stream: [topic],
-      event: "update",
-      payload:
-        Pleroma.Web.MastodonAPI.StatusView.render(
-          "show.json",
-          activity: activity
-        )
-        |> Jason.encode!()
-    }
-    |> Jason.encode!()
-  end
-
   def render("chat_update.json", %{chat_message_reference: cm_ref}) do
     # Explicitly giving the cmr for the object here, so we don't accidentally
     # send a later 'last_message' that was inserted between inserting this and
@@ -90,6 +76,20 @@ defmodule Pleroma.Web.StreamerView do
       event: "pleroma:chat_update",
       payload:
         representation
+        |> Jason.encode!()
+    }
+    |> Jason.encode!()
+  end
+
+  def render("update.json", %Activity{} = activity, topic) do
+    %{
+      stream: [topic],
+      event: "update",
+      payload:
+        Pleroma.Web.MastodonAPI.StatusView.render(
+          "show.json",
+          activity: activity
+        )
         |> Jason.encode!()
     }
     |> Jason.encode!()
