@@ -17,10 +17,11 @@ defmodule Pleroma.Web.ActivityPub.MRF.NoNewAccounts do
   @impl true
   def filter(
         %{
-          "type" => "Note",
+          "type" => type,
           "actor" => actor
-        } = message
-      ) do
+        } = object
+      )
+      when type in ["Create", "Update"] do
     actor_info = URI.parse(actor)
     user = User.get_cached_by_ap_id(actor)
     old_enough = Timex.shift(NaiveDateTime.utc_now(), days: -2)
@@ -33,7 +34,7 @@ defmodule Pleroma.Web.ActivityPub.MRF.NoNewAccounts do
       # Logger.warn("[NoNewAccounts] Rejecting post from fresh account: #{user.nickname}!")
       {:reject, "[NoNewAccounts] Rejecting post from fresh account!"}
     else
-      {:ok, message}
+      {:ok, object}
     end
   end
 
