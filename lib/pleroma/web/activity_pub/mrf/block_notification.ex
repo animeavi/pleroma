@@ -22,7 +22,7 @@ defmodule Pleroma.Web.ActivityPub.MRF.BlockNotification do
 
   defp is_remote_or_displaying_local?(%User{local: false}), do: true
 
-  defp is_remote_or_displaying_local?(_), do: true
+  defp is_remote_or_displaying_local?(_), do: false
 
   defp user_old_enough?(actor) do
     old_enough = Timex.shift(NaiveDateTime.utc_now(), days: -7)
