@@ -24,38 +24,49 @@ defmodule Pleroma.Web.ActivityPub.MRF.BlockNotification do
 
   defp is_remote_or_displaying_local?(_), do: true
 
+  defp user_old_enough?(actor) do
+    old_enough = Timex.shift(NaiveDateTime.utc_now(), days: -7)
+    Timex.to_unix(actor.inserted_at) < Timex.to_unix(old_enough)
+  end
+
   @impl true
   def filter(message) do
-
     with {true, action, object} <- is_block_or_unblock(message),
          %User{} = actor <- User.get_cached_by_ap_id(message["actor"]),
          %User{} = recipient <- User.get_cached_by_ap_id(object),
          true <- recipient.local,
-         true <- is_remote_or_displaying_local?(actor),
-         false <- User.blocks_user?(recipient, actor) do
-
+         true <- is_remote_or_displaying_local?(actor) do
       # Create /opt/pleroma/logs/ with write perms for user pleroma
       # Make a cron job to delete the log file every hour or whatever
       # Not my problem
       log_file = "/opt/pleroma/logs/blocks.log"
       bot_user = "cockblock"
 
-      log_contents = if File.exists?(log_file) do
-        File.read!(log_file)
-      else
-        ""
-      end
+      log_contents =
+        if File.exists?(log_file) do
+          File.read!(log_file)
+        else
+          ""
+        end
 
       logged_blocks = String.split(log_contents, "\n")
 
-      actor_name = (fn actor_uri -> Path.basename(actor_uri.path) <> "@" <> actor_uri.authority end).(URI.parse(message["actor"]))
+      actor_name =
+        (fn actor_uri -> Path.basename(actor_uri.path) <> "@" <> actor_uri.authority end).(
+          URI.parse(message["actor"])
+        )
+
       log_entry = actor_name <> ":" <> action
 
-      unless Enum.member?(logged_blocks, log_entry) do
+      if not Enum.member?(logged_blocks, log_entry) and user_old_enough?(actor) do
         File.write!(log_file, log_entry <> "\n", [:append])
+
         _reply =
           CommonAPI.post(User.get_by_nickname(bot_user), %{
-            status: "@" <> recipient.nickname <> " you have been " <> action <> " by @" <> actor_name <> " (" <> actor_name <> ")",
+            status:
+              "@" <>
+                recipient.nickname <>
+                " you have been " <> action <> " by @" <> actor_name <> " (" <> actor_name <> ")",
             visibility: "unlisted"
           })
       end
