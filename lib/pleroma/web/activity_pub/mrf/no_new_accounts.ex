@@ -17,7 +17,7 @@ defmodule Pleroma.Web.ActivityPub.MRF.NoNewAccounts do
   @impl true
   def filter(
         %{
-          "type" => "Create",
+          "type" => "Note",
           "actor" => actor
         } = message
       ) do
