@@ -11,13 +11,13 @@ defmodule Pleroma.Web.ActivityPub.MRF.BlockNotification do
   alias Pleroma.Web.CommonAPI
 
   defp is_block_or_unblock(%{"type" => "Block", "object" => object}),
-    do: {true, "blocked", object}
+    do: {true, Pleroma.Config.get([:mrf_block_notification, :blocked_text]), object}
 
   defp is_block_or_unblock(%{
          "type" => "Undo",
          "object" => %{"type" => "Block", "object" => object}
        }),
-       do: {true, "unblocked", object}
+       do: {true, Pleroma.Config.get([:mrf_block_notification, :unblocked_text]), object}
 
   defp is_block_or_unblock(_), do: {false, nil, nil}
 
@@ -148,6 +148,18 @@ defmodule Pleroma.Web.ActivityPub.MRF.BlockNotification do
           suggestions: [
             "[blocked_user] you have been [action] by [blocking_user_without_mention]"
           ]
+        },
+        %{
+          key: :blocked_text,
+          type: :string,
+          description: "Text to use for **[action]** when action is blocking.",
+          suggestions: ["blocked"]
+        },
+        %{
+          key: :unblocked_text,
+          type: :string,
+          description: "Text to use for **[action]** when action is unblocking.",
+          suggestions: ["unblocked"]
         },
         %{
           key: :account_days_old,
