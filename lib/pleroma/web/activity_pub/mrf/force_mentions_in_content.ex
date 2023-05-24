@@ -5,7 +5,6 @@
 defmodule Pleroma.Web.ActivityPub.MRF.ForceMentionsInContent do
   require Pleroma.Constants
 
-  alias Pleroma.Formatter
   alias Pleroma.Object
   alias Pleroma.User
 
@@ -74,6 +73,28 @@ defmodule Pleroma.Web.ActivityPub.MRF.ForceMentionsInContent do
     end)
   end
 
+  defp get_nickname_text(nickname, %{mentions_format: :full}), do: User.full_nickname(nickname)
+  defp get_nickname_text(nickname, _), do: User.local_nickname(nickname)
+
+  def mention_from_user(%User{id: id} = user, opts \\ %{mentions_format: :full}) do
+    user_url = user.uri || user.ap_id
+    nickname_text = get_nickname_text(user.nickname, opts)
+
+    Phoenix.HTML.Tag.content_tag(
+      :span,
+      Phoenix.HTML.Tag.content_tag(
+        :a,
+        ["@", Phoenix.HTML.Tag.content_tag(:span, nickname_text)],
+        "data-user": id,
+        class: "u-url mention",
+        href: user_url,
+        rel: "ugc"
+      ),
+      class: "h-card"
+    )
+    |> Phoenix.HTML.safe_to_string()
+  end
+
   @impl true
   def filter(
         %{
@@ -100,7 +121,7 @@ defmodule Pleroma.Web.ActivityPub.MRF.ForceMentionsInContent do
     added_mentions =
       Enum.reduce(mention_users, "", fn %User{ap_id: uri} = user, acc ->
         unless uri in explicitly_mentioned_uris do
-          acc <> Formatter.mention_tag(user, %{mentions_format: :compact}) <> " "
+          acc <> mention_from_user(user, %{mentions_format: :compact}) <> " "
         else
           acc
         end
