@@ -77,7 +77,6 @@ defmodule Pleroma.Mixfile do
         :runtime_tools,
         :comeonin,
         :fast_sanitize,
-        :os_mon,
         :ssl
       ],
       included_applications: [:ex_syslogger]
@@ -151,7 +150,7 @@ defmodule Pleroma.Mixfile do
       # earmark 1.4.23 requires Elixir 1.12+
       {:earmark, "1.4.22"},
       {:bbcode_pleroma, "~> 0.2.0"},
-      {:argon2_elixir, "~> 3.1"}
+      {:argon2_elixir, "~> 3.1"},
       {:cors_plug, "~> 2.0"},
       {:web_push_encryption, "~> 0.3.1"},
       {:swoosh, "~> 1.0"},
