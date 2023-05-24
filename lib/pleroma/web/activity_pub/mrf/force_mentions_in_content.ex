@@ -3,12 +3,12 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 
 defmodule Pleroma.Web.ActivityPub.MRF.ForceMentionsInContent do
+  @behaviour Pleroma.Web.ActivityPub.MRF.Policy
+
   require Pleroma.Constants
 
   alias Pleroma.Object
   alias Pleroma.User
-
-  @behaviour Pleroma.Web.ActivityPub.MRF.Policy
 
   @impl true
   def history_awareness, do: :auto
@@ -66,7 +66,7 @@ defmodule Pleroma.Web.ActivityPub.MRF.ForceMentionsInContent do
   defp clean_recipients(recipients, object) do
     Enum.reject(recipients, fn ap_id ->
       ap_id in [
-        object["object"]["actor"],
+        object["actor"],
         Pleroma.Constants.as_public(),
         Pleroma.Web.ActivityPub.Utils.as_local_public()
       ]
@@ -98,16 +98,17 @@ defmodule Pleroma.Web.ActivityPub.MRF.ForceMentionsInContent do
   @impl true
   def filter(
         %{
-          "type" => type,
-          "object" => %{"type" => "Note", "to" => to, "inReplyTo" => in_reply_to}
+          "type" => "Note",
+          "to" => to,
+          "inReplyTo" => in_reply_to
         } = object
       )
-      when type in ["Create", "Update"] and is_list(to) and is_binary(in_reply_to) do
+      when is_list(to) and is_binary(in_reply_to) do
     # image-only posts from pleroma apparently reach this MRF without the content field
-    content = object["object"]["content"] || ""
+    content = object["content"] || ""
 
     # Get the replied-to user for sorting
-    replied_to_user = get_replied_to_user(object["object"])
+    replied_to_user = get_replied_to_user(object)
 
     mention_users =
       to
@@ -145,7 +146,9 @@ defmodule Pleroma.Web.ActivityPub.MRF.ForceMentionsInContent do
           content
       end
 
-    {:ok, put_in(object["object"]["content"], content)}
+    object = put_in(object["content"], content)
+
+    {:ok, object}
   end
 
   @impl true
