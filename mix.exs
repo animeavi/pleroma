@@ -76,6 +76,7 @@ defmodule Pleroma.Mixfile do
         :logger,
         :runtime_tools,
         :comeonin,
+        :os_mon,
         :fast_sanitize,
         :ssl
       ],
