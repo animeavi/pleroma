@@ -120,8 +120,8 @@ defmodule Pleroma.Web.ActivityPub.MRF.ForceMentionsInContent do
     explicitly_mentioned_uris = extract_mention_uris_from_content(content)
 
     added_mentions =
-      Enum.reduce(mention_users, "", fn %User{ap_id: uri} = user, acc ->
-        unless uri in explicitly_mentioned_uris do
+      Enum.reduce(mention_users, "", fn %User{ap_id: api_id, uri: uri} = user, acc ->
+        unless Enum.any?([api_id, uri], fn u -> u in explicitly_mentioned_uris end) do
           acc <> mention_from_user(user, %{mentions_format: :compact}) <> " "
         else
           acc
