@@ -136,16 +136,8 @@ defmodule Pleroma.Web.ActivityPub.MRF.SimplePolicy do
     {:ok, object}
   end
 
-  defp check_report_removal(%{host: actor_host} = _actor_info, %{"type" => "Flag"} = object) do
-    report_removal =
-      instance_list(:report_removal)
-      |> MRF.subdomains_regex()
-
-    if MRF.subdomain_match?(report_removal, actor_host) do
-      {:reject, "[SimplePolicy] host in report_removal list"}
-    else
-      {:ok, object}
-    end
+  defp check_report_removal(%{host: _actor_host} = _actor_info, %{"type" => "Flag"} = _object) do
+    {:reject, "[SimplePolicy] reports are gay"}
   end
 
   defp check_report_removal(_actor_info, object), do: {:ok, object}
