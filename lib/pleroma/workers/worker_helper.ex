@@ -1,5 +1,5 @@
 # Pleroma: A lightweight social networking server
-# Copyright © 2017-2021 Pleroma Authors <https://pleroma.social/>
+# Copyright © 2017-2022 Pleroma Authors <https://pleroma.social/>
 # SPDX-License-Identifier: AGPL-3.0-only
 
 defmodule Pleroma.Workers.WorkerHelper do
@@ -42,12 +42,6 @@ defmodule Pleroma.Workers.WorkerHelper do
         unquote(caller_module)
         |> apply(:new, [params, worker_args])
         |> Oban.insert()
-      end
-
-      @impl Oban.Worker
-      def timeout(_job) do
-        queue_atom = String.to_atom(unquote(queue))
-        Config.get([:workers, :timeout, queue_atom], :timer.minutes(1))
       end
     end
   end
