@@ -46,7 +46,8 @@ defmodule Pleroma.Web.Plugs.UploadedMedia do
 
     config = Pleroma.Config.get(Pleroma.Upload)
 
-    media_host = Pleroma.Upload.base_url() |> URI.parse() |> Map.get(:host)
+    %{scheme: media_scheme, host: media_host, port: media_port} =
+      Pleroma.Upload.base_url() |> URI.parse()
 
     with {:valid_host, true} <- {:valid_host, match?(^media_host, conn.host)},
          uploader <- Keyword.fetch!(config, :uploader),
@@ -56,9 +57,19 @@ defmodule Pleroma.Web.Plugs.UploadedMedia do
       get_media(conn, get_method, opts)
     else
       {:valid_host, false} ->
-        conn
+        redirect_url =
+          %URI{
+            scheme: media_scheme,
+            host: media_host,
+            port: media_port,
+            path: conn.request_path,
+            query: conn.query_string
+          }
+          |> URI.to_string()
+          |> String.trim_trailing("?")
 
-        send_resp(conn, 400, Plug.Conn.Status.reason_phrase(400))
+        conn
+        |> Phoenix.Controller.redirect(external: redirect_url)
         |> halt()
 
       _ ->
