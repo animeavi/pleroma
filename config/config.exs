@@ -329,9 +329,6 @@ config :pleroma, :frontend_configurations,
     theme: "pleroma-dark",
     webPushNotifications: false,
     conversationDisplay: "linear"
-  },
-  masto_fe: %{
-    showInstanceSpecificPanel: true
   }
 
 config :pleroma, :assets,
