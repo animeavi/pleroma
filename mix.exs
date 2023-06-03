@@ -176,7 +176,7 @@ defmodule Pleroma.Mixfile do
       {:remote_ip, "~> 1.1.0"},
       {:captcha,
        git: "https://github.com/animeavi/elixir-captcha.git",
-       ref: "d280d06ae7ba7757a772567b9e608dba3a0c0ae2"},
+       ref: "75e57325cec503167d028e71a4e53b5ffaf5994a"},
       {:restarter, path: "./restarter"},
       {:majic, "~> 1.0"},
       {:eblurhash, "~> 1.2.2"},
