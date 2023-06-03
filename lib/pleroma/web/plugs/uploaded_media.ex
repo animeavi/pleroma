@@ -51,7 +51,6 @@ defmodule Pleroma.Web.Plugs.UploadedMedia do
 
     with {:valid_host, true} <- {:valid_host, match?(^media_host, conn.host)},
          uploader <- Keyword.fetch!(config, :uploader),
-         proxy_remote = Keyword.get(config, :proxy_remote, false),
          {:ok, get_method} <- uploader.get_file(file),
          false <- media_is_banned(conn, get_method) do
       get_media(conn, get_method, opts)
