@@ -135,7 +135,7 @@ defmodule Pleroma.Mixfile do
       {:cowlib, "~> 2.9"},
       {:finch, "~> 0.14.0"},
       {:jason, "~> 1.2"},
-      {:jsonrs, "~> 0.2.1"},
+      {:jsonrs, "~> 0.3"},
       {:trailing_format_plug, "~> 0.0.7"},
       {:mogrify, "~> 0.9.1"},
       {:ex_aws, "~> 2.4"},
