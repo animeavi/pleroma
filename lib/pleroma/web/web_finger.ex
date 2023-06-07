@@ -163,8 +163,8 @@ defmodule Pleroma.Web.WebFinger do
     with {:ok, %{status: status, body: body}} when status in 200..299 <- HTTP.get(meta_url) do
       get_template_from_xml(body)
     else
-      error ->
-        Logger.warn("Can't find LRDD template in #{inspect(meta_url)}: #{inspect(error)}")
+      _error ->
+        #Logger.warn("Can't find LRDD template in #{inspect(meta_url)}: #{inspect(error)}")
         {:error, :lrdd_not_found}
     end
   end
