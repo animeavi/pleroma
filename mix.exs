@@ -113,7 +113,7 @@ defmodule Pleroma.Mixfile do
   # Type `mix help deps` for examples and options.
   defp deps do
     [
-      {:phoenix, "~> 1.6.15"},
+      {:phoenix, "~> 1.6.16"},
       {:tzdata, "~> 1.1.1"},
       {:plug_cowboy, "~> 2.6"},
       {:phoenix_pubsub, "~> 2.1"},
@@ -135,7 +135,10 @@ defmodule Pleroma.Mixfile do
       {:cowlib, "~> 2.9"},
       {:finch, "~> 0.14.0"},
       {:jason, "~> 1.2"},
-      {:jsonrs, "~> 0.3"},
+      {:rustler, ">= 0.0.0", optional: true},
+      {:jsonrs,
+       git: "https://github.com/animeavi/Jsonrs.git",
+       ref: "230c1c78a89788358de12f24486f27c6311542e7"},
       {:trailing_format_plug, "~> 0.0.7"},
       {:mogrify, "~> 0.9.1"},
       {:ex_aws, "~> 2.4"},
