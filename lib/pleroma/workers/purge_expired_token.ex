@@ -20,9 +20,7 @@ defmodule Pleroma.Workers.PurgeExpiredToken do
   end
 
   @impl Oban.Worker
-  def timeout(_job) do
-    Pleroma.Config.get([:workers, :timeout, :token_expiration], :timer.minutes(1))
-  end
+  def timeout(_job), do: :timer.seconds(5)
 
   @impl true
   def perform(%Oban.Job{args: %{"token_id" => id, "mod" => module}}) do
@@ -31,7 +29,4 @@ defmodule Pleroma.Workers.PurgeExpiredToken do
     |> Pleroma.Repo.get(id)
     |> Pleroma.Repo.delete()
   end
-
-  @impl Oban.Worker
-  def timeout(_job), do: :timer.seconds(5)
 end

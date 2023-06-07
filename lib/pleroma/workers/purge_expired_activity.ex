@@ -28,9 +28,7 @@ defmodule Pleroma.Workers.PurgeExpiredActivity do
   end
 
   @impl Oban.Worker
-  def timeout(_job) do
-    Pleroma.Config.get([:workers, :timeout, :activity_expiration], :timer.minutes(1))
-  end
+  def timeout(_job), do: :timer.seconds(5)
 
   @impl true
   def perform(%Oban.Job{args: %{"activity_id" => id}}) do
@@ -39,9 +37,6 @@ defmodule Pleroma.Workers.PurgeExpiredActivity do
       Pleroma.Web.CommonAPI.delete(activity.id, user)
     end
   end
-
-  @impl Oban.Worker
-  def timeout(_job), do: :timer.seconds(5)
 
   defp enabled? do
     with false <- Pleroma.Config.get([__MODULE__, :enabled], false) do
