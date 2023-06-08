@@ -2,6 +2,20 @@
 # Copyright © 2017-2021 Pleroma Authors <https://pleroma.social/>
 # SPDX-License-Identifier: AGPL-3.0-only
 
+defmodule Pleroma.SQLiteRepo.MigrationHelpers do
+  def migrate() do
+    {:ok, _, _} = Ecto.Migrator.with_repo(Pleroma.SQLiteRepo, &Ecto.Migrator.run(&1, :up, all: true))
+  end
+
+  def rollback(version) do
+    {:ok, _, _} = Ecto.Migrator.with_repo(Pleroma.SQLiteRepo, &Ecto.Migrator.run(&1, :down, to: version))
+  end
+end
+
+defmodule Pleroma.SQLiteRepo do
+  use Ecto.Repo, otp_app: :pleroma, adapter: Ecto.Adapters.SQLite3
+end
+
 defmodule Pleroma.Repo do
   use Ecto.Repo,
     otp_app: :pleroma,

@@ -61,6 +61,8 @@ defmodule Pleroma.Application do
     children =
       [
         Pleroma.Repo,
+        Pleroma.SQLiteRepo,
+        {Task, &Pleroma.SQLiteRepo.MigrationHelpers.migrate/0},
         Config.TransferTask,
         Pleroma.Emoji,
         Pleroma.Web.Plugs.RateLimiter.Supervisor,

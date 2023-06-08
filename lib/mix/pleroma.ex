@@ -41,7 +41,7 @@ defmodule Mix.Pleroma do
 
     oban_config = [
       crontab: [],
-      repo: Pleroma.Repo,
+      repo: Pleroma.SQLiteRepo,
       log: false,
       queues: [],
       plugins: []
@@ -50,6 +50,7 @@ defmodule Mix.Pleroma do
     children =
       [
         Pleroma.Repo,
+        Pleroma.SQLiteRepo,
         Pleroma.Emoji,
         {Pleroma.Config.TransferTask, false},
         Pleroma.Web.Endpoint,

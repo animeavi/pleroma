@@ -9,22 +9,22 @@ defmodule Pleroma.Tests.ObanHelpers do
 
   require Ecto.Query
 
-  alias Pleroma.Repo
+  alias Pleroma.SQLiteRepo
 
   def wipe_all do
-    Repo.delete_all(Oban.Job)
+    SQLiteRepo.delete_all(Oban.Job)
   end
 
   def perform_all do
     Oban.Job
     |> Ecto.Query.where(state: "available")
-    |> Repo.all()
+    |> SQLiteRepo.all()
     |> perform()
   end
 
   def perform(%Oban.Job{} = job) do
     res = apply(String.to_existing_atom("Elixir." <> job.worker), :perform, [job])
-    Repo.delete(job)
+    SQLiteRepo.delete(job)
     res
   end
 

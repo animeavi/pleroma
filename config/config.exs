@@ -44,12 +44,22 @@
 import Config
 
 # General application configuration
-config :pleroma, ecto_repos: [Pleroma.Repo]
+config :pleroma, ecto_repos: [Pleroma.Repo, Pleroma.SQLiteRepo]
 
 config :pleroma, Pleroma.Repo,
   telemetry_event: [Pleroma.Repo.Instrumenter],
   queue_target: 20_000,
   migration_lock: nil
+
+config :pleroma, Pleroma.SQLiteRepo,
+  database: :memory,
+  show_sensitive_data_on_connection_error: false,
+  journal_mode: :wal,
+  cache_size: -64000,
+  temp_store: :memory,
+  synchronous: :off,
+  busy_timeouut: 60000,
+  pool_size: 50
 
 config :pleroma, Pleroma.Captcha,
   enabled: true,
@@ -548,7 +558,8 @@ config :pleroma, Pleroma.User,
   email_blacklist: []
 
 config :pleroma, Oban,
-  repo: Pleroma.Repo,
+  engine: Oban.Engines.Lite,
+  repo: Pleroma.SQLiteRepo,
   log: false,
   queues: [
     activity_expiration: 10,
