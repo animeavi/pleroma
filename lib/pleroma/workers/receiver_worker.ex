@@ -12,11 +12,11 @@ defmodule Pleroma.Workers.ReceiverWorker do
     with {:ok, res} <- Federator.perform(:incoming_ap_doc, params) do
       {:ok, res}
     else
-      {:error, :origin_containment_failed} -> {:discard, :origin_containment_failed}
-      {:error, :already_present} -> {:discard, :already_present}
-      {:error, {:validate_object, reason}} -> {:discard, reason}
-      {:error, {:error, {:validate, reason}}} -> {:discard, reason}
-      {:error, {:reject, reason}} -> {:discard, reason}
+      {:error, :origin_containment_failed} -> {:cancel, :origin_containment_failed}
+      {:error, :already_present} -> {:cancel, :already_present}
+      {:error, {:validate_object, reason}} -> {:cancel, reason}
+      {:error, {:error, {:validate, reason}}} -> {:cancel, reason}
+      {:error, {:reject, reason}} -> {:cancel, reason}
       e -> e
     end
   end

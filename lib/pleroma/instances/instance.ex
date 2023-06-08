@@ -173,7 +173,7 @@ defmodule Pleroma.Instances.Instance do
     if reachable?(host) do
       do_update_metadata(uri, existing_record)
     else
-      {:discard, :unreachable}
+      {:cancel, :unreachable}
     end
   end
 
@@ -193,7 +193,7 @@ defmodule Pleroma.Instances.Instance do
         })
         |> Repo.update()
       else
-        {:discard, "Does not require update"}
+        {:cancel, "Does not require update"}
       end
     else
       favicon = scrape_favicon(uri)

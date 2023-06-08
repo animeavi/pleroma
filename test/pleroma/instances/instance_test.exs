@@ -223,7 +223,7 @@ defmodule Pleroma.Instances.InstanceTest do
       instance = insert(:instance, unreachable_since: Instances.reachability_datetime_threshold())
       url = "https://" <> instance.host
 
-      assert {:discard, :unreachable} == Instance.update_metadata(URI.parse(url))
+      assert {:cancel, :unreachable} == Instance.update_metadata(URI.parse(url))
     end
 
     test "doesn't continue scraping nodeinfo if we can't find a link" do

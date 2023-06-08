@@ -16,7 +16,7 @@ defmodule Pleroma.Workers.ReceiverWorkerTest do
 
     with_mock Pleroma.Web.ActivityPub.Transmogrifier,
       handle_incoming: fn _ -> {:reject, "MRF"} end do
-      assert {:discard, "MRF"} =
+      assert {:cancel, "MRF"} =
                ReceiverWorker.perform(%Oban.Job{
                  args: %{"op" => "incoming_ap_doc", "params" => params}
                })
@@ -34,7 +34,7 @@ defmodule Pleroma.Workers.ReceiverWorkerTest do
 
     with_mock Pleroma.Web.ActivityPub.ObjectValidator, [:passthrough],
       validate: fn _, _ -> {:error, %Ecto.Changeset{}} end do
-      assert {:discard, {:error, %Ecto.Changeset{}}} =
+      assert {:cancel, {:error, %Ecto.Changeset{}}} =
                ReceiverWorker.perform(%Oban.Job{
                  args: %{"op" => "incoming_ap_doc", "params" => params}
                })
@@ -44,7 +44,7 @@ defmodule Pleroma.Workers.ReceiverWorkerTest do
   test "it ignores duplicates" do
     params = insert(:note_activity).data
 
-    assert {:discard, :already_present} =
+    assert {:cancel, :already_present} =
              ReceiverWorker.perform(%Oban.Job{
                args: %{"op" => "incoming_ap_doc", "params" => params}
              })
