@@ -101,8 +101,8 @@ defmodule Pleroma.Object.Updater do
 
   defp maybe_update_poll(to_be_updated, updated_object) do
     choice_key = fn
-      %{"anyOf" => [_ | _]} = data -> "anyOf"
-      %{"oneOf" => [_ | _]} = data -> "oneOf"
+      %{"anyOf" => [_ | _]} -> "anyOf"
+      %{"oneOf" => [_ | _]} -> "oneOf"
       _ -> nil
     end
 
@@ -255,7 +255,6 @@ defmodule Pleroma.Object.Updater do
 
   def do_update_and_invalidate_cache(orig_object, updated_object, touch_changeset? \\ false) do
     orig_object_ap_id = updated_object["id"]
-    orig_object = Object.get_by_ap_id(orig_object_ap_id)
     orig_object_data = orig_object.data
 
     %{
