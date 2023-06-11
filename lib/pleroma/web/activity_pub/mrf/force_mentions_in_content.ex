@@ -117,12 +117,14 @@ defmodule Pleroma.Web.ActivityPub.MRF.ForceMentionsInContent do
       |> Enum.reject(&is_nil/1)
       |> sort_replied_user(replied_to_user)
 
-    explicitly_mentioned_uris = extract_mention_uris_from_content(content)
+    explicitly_mentioned_uris =
+      extract_mention_uris_from_content(content)
+      |> MapSet.new()
 
     added_mentions =
-      Enum.reduce(mention_users, "", fn %User{ap_id: api_id, uri: uri} = user, acc ->
-        unless Enum.any?([api_id, uri], fn u -> u in explicitly_mentioned_uris end) do
-          acc <> mention_from_user(user, %{mentions_format: :compact}) <> " "
+      Enum.reduce(mention_users, "", fn %User{ap_id: ap_id, uri: uri} = user, acc ->
+        if MapSet.disjoint?(MapSet.new([ap_id, uri]), explicitly_mentioned_uris) do
+          acc <> Formatter.mention_from_user(user, %{mentions_format: :compact}) <> " "
         else
           acc
         end
@@ -146,9 +148,7 @@ defmodule Pleroma.Web.ActivityPub.MRF.ForceMentionsInContent do
           content
       end
 
-    object = put_in(object["content"], content)
-
-    {:ok, object}
+    {:ok, put_in(object["object"]["content"], content)}
   end
 
   @impl true
