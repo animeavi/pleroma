@@ -124,7 +124,7 @@ defmodule Pleroma.Web.ActivityPub.MRF.ForceMentionsInContent do
     added_mentions =
       Enum.reduce(mention_users, "", fn %User{ap_id: ap_id, uri: uri} = user, acc ->
         if MapSet.disjoint?(MapSet.new([ap_id, uri]), explicitly_mentioned_uris) do
-          acc <> Formatter.mention_from_user(user, %{mentions_format: :compact}) <> " "
+          acc <> mention_from_user(user, %{mentions_format: :compact}) <> " "
         else
           acc
         end

@@ -962,12 +962,6 @@ defmodule Pleroma.Web.ActivityPub.Transmogrifier do
 
   defp strip_internal_tags(object), do: object
 
-  defp update_user(user, data) do
-    user
-    |> User.remote_user_changeset(data)
-    |> User.update_and_set_cache()
-  end
-
   def maybe_fix_user_url(%{"url" => url} = data) when is_map(url) do
     Map.put(data, "url", url["href"])
   end
