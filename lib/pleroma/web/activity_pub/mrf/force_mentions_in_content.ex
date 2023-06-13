@@ -148,7 +148,9 @@ defmodule Pleroma.Web.ActivityPub.MRF.ForceMentionsInContent do
           content
       end
 
-    {:ok, put_in(object["object"]["content"], content)}
+    object = put_in(object["content"], content)
+
+    {:ok, object}
   end
 
   @impl true
