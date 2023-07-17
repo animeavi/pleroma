@@ -930,9 +930,13 @@ defmodule Pleroma.Web.ActivityPub.Transmogrifier do
   def prepare_attachments(%{"type" => "ChatMessage"} = object), do: object
 
   def prepare_attachments(object) do
+    attachments = case Map.get(object, "attachment", []) do
+      [_ | _] = list -> list
+      _ -> []
+    end
+    
     attachments =
-      object
-      |> Map.get("attachment", [])
+      attachments
       |> Enum.map(fn data ->
         [%{"mediaType" => media_type, "href" => href} = url | _] = data["url"]
 
