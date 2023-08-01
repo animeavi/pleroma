@@ -64,6 +64,8 @@ defmodule Pleroma.Web.ActivityPub.MRF do
   @required_description_keys [:key, :related_policy]
 
   def filter_one(policy, message) do
+    Code.ensure_loaded!(policy)
+
     should_plug_history? =
       if function_exported?(policy, :history_awareness, 0) do
         policy.history_awareness()
@@ -227,7 +229,7 @@ defmodule Pleroma.Web.ActivityPub.MRF do
         if Enum.all?(@required_description_keys, &Map.has_key?(description, &1)) do
           [description | acc]
         else
-          Logger.warn(
+          Logger.warning(
             "#{policy} config description doesn't have one or all required keys #{inspect(@required_description_keys)}"
           )
 

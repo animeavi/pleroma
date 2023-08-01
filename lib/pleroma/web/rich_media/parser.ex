@@ -151,7 +151,7 @@ defmodule Pleroma.Web.RichMedia.Parser do
       Task.await(task, 5000)
     catch
       :exit, {:timeout, _} ->
-        Logger.warn("Timeout while fetching rich media for #{url}")
+        Logger.warning("Timeout while fetching rich media for #{url}")
         {:error, :timeout}
     end
   end
