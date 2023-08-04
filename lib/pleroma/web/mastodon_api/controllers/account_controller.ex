@@ -501,7 +501,7 @@ defmodule Pleroma.Web.MastodonAPI.AccountController do
     users =
       user
       |> User.muted_users_relation(_restrict_deactivated = true)
-      |> Pleroma.Pagination.fetch_paginated(Map.put(params, :skip_order, true))
+      |> Pleroma.Pagination.fetch_paginated(params)
 
     conn
     |> add_link_headers(users)
@@ -518,7 +518,7 @@ defmodule Pleroma.Web.MastodonAPI.AccountController do
     users =
       user
       |> User.blocked_users_relation(_restrict_deactivated = true)
-      |> Pleroma.Pagination.fetch_paginated(Map.put(params, :skip_order, true))
+      |> Pleroma.Pagination.fetch_paginated(params)
 
     conn
     |> add_link_headers(users)
