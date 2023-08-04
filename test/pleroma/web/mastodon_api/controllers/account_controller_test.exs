@@ -1781,21 +1781,21 @@ defmodule Pleroma.Web.MastodonAPI.AccountControllerTest do
       |> get("/api/v1/mutes")
       |> json_response_and_validate_schema(200)
 
-    assert [id1, id2, id3] == Enum.map(result, & &1["id"])
+    assert [id3, id2, id1] == Enum.map(result, & &1["id"])
 
     result =
       conn
       |> get("/api/v1/mutes?limit=1")
       |> json_response_and_validate_schema(200)
 
-    assert [%{"id" => ^id1}] = result
+    assert [%{"id" => ^id3}] = result
 
     result =
       conn
       |> get("/api/v1/mutes?since_id=#{id1}")
       |> json_response_and_validate_schema(200)
 
-    assert [%{"id" => ^id2}, %{"id" => ^id3}] = result
+    assert [%{"id" => ^id3}, %{"id" => ^id2}] = result
 
     result =
       conn
@@ -1809,7 +1809,7 @@ defmodule Pleroma.Web.MastodonAPI.AccountControllerTest do
       |> get("/api/v1/mutes?since_id=#{id1}&limit=1")
       |> json_response_and_validate_schema(200)
 
-    assert [%{"id" => ^id2}] = result
+    assert [%{"id" => ^id3}] = result
   end
 
   test "list of mutes with with_relationships parameter" do
@@ -1828,7 +1828,7 @@ defmodule Pleroma.Web.MastodonAPI.AccountControllerTest do
 
     assert [
              %{
-               "id" => ^id1,
+               "id" => ^id3,
                "pleroma" => %{"relationship" => %{"muting" => true, "followed_by" => true}}
              },
              %{
@@ -1836,7 +1836,7 @@ defmodule Pleroma.Web.MastodonAPI.AccountControllerTest do
                "pleroma" => %{"relationship" => %{"muting" => true, "followed_by" => true}}
              },
              %{
-               "id" => ^id3,
+               "id" => ^id1,
                "pleroma" => %{"relationship" => %{"muting" => true, "followed_by" => true}}
              }
            ] =
@@ -1861,7 +1861,7 @@ defmodule Pleroma.Web.MastodonAPI.AccountControllerTest do
       |> get("/api/v1/blocks")
       |> json_response_and_validate_schema(200)
 
-    assert [id1, id2, id3] == Enum.map(result, & &1["id"])
+    assert [id3, id2, id1] == Enum.map(result, & &1["id"])
 
     result =
       conn
@@ -1869,7 +1869,7 @@ defmodule Pleroma.Web.MastodonAPI.AccountControllerTest do
       |> get("/api/v1/blocks?limit=1")
       |> json_response_and_validate_schema(200)
 
-    assert [%{"id" => ^id1}] = result
+    assert [%{"id" => ^id3}] = result
 
     result =
       conn
@@ -1877,7 +1877,7 @@ defmodule Pleroma.Web.MastodonAPI.AccountControllerTest do
       |> get("/api/v1/blocks?since_id=#{id1}")
       |> json_response_and_validate_schema(200)
 
-    assert [%{"id" => ^id2}, %{"id" => ^id3}] = result
+    assert [%{"id" => ^id3}, %{"id" => ^id2}] = result
 
     result =
       conn
@@ -1893,7 +1893,7 @@ defmodule Pleroma.Web.MastodonAPI.AccountControllerTest do
       |> get("/api/v1/blocks?since_id=#{id1}&limit=1")
       |> json_response_and_validate_schema(200)
 
-    assert [%{"id" => ^id2}] = result
+    assert [%{"id" => ^id3}] = result
   end
 
   test "list of blocks with with_relationships parameter" do
