@@ -6,11 +6,68 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## Unreleased
 
-### Removed
-- MastoFE
+## Added
+
+## 2023.08
+
+## Added
+
+- Added a new configuration option to the MediaProxy feature that allows the blocking of specific domains from using the media proxy or being explicitly allowed by the Content-Security-Policy.
+  - Please make sure instances you wanted to block media from are not in the MediaProxy `whitelist`, and instead use `blocklist`.
+- `OnlyMedia` Upload Filter to simplify restricting uploads to audio, image, and video types
+- ARM64 OTP builds
+  - Ubuntu22 builds are available for develop and stable
+  - other distributions are stable only
+- Support for Elixir 1.15
+  - 1.14 is still supported
+  - OTP26 is currently "unsupported". It will probably work, but due to the way
+    it handles map ordering, the test suite will not pass for it as yet.
+
+## Changed
+
+- Alpine OTP builds are now from alpine 3.18, which is OpenSSLv3 compatible.
+  If you use alpine OTP builds you will have to update your local system.
+- Debian OTP builds are now from a base of bookworm, which is OpenSSLv3 compatible.
+  If you use debian OTP builds you will have to update your local system to
+  bookworm (currently: stable).
+- Ubuntu and debian builds are compatible again! (for now...)
+- Blocks/Mutes now return from max ID to min ID, in line with mastodon.
+- The AnonymizeFilename filter is now enabled by default.
+
+## Fixed
+
+- Deactivated users can no longer show up in the emoji reaction list
+- Embedded posts can no longer bypass `:restrict\_unauthenticated`
+- GET/HEAD requests will now work when requesting AWS-based instances.
+
+## Security
+
+- Add `no_new_privs` hardening to OpenRC and systemd service files
+- XML parsers cannot load any entities (thanks @Mae@is.badat.dev!)
+- Reduced permissions of config files and directories, distros requiring greater permissions like group-read need to pre-create the directories
+
+## Removed
+
+- Builds for debian oldstable (bullseye)
+  - If you are on oldstable you should NOT attempt to update OTP builds without
+    first updating your machine.
+
+## 2023.05
+
+## Added
+- Custom options for users to accept/reject private messages
+  - options: everybody, nobody, people\_i\_follow
+- MRF to reject notes from accounts newer than a given age
+  - this will have the side-effect of rejecting legitimate messages if your
+    post gets boosted outside of your local bubble and people your instance
+    does not know about reply to it.
 
 ## Fixed
 - Support for `streams` public key URIs
+- Bookmarks are cleaned up on DB prune now
+
+## Security
+- Fixed mediaproxy being a bit of a silly billy
 
 ## 2023.04
 
@@ -30,10 +87,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## Fixed
 - Allowed contentMap to be updated on edit
+- Filter creation now accepts expires\_at
 
 ### Changed
 - Restoring the database from a dump now goes much faster without need for work-arounds
-=======
+- Misskey reaction matching uses `content` parameter now
+
 ### Added
 - Extend the mix task `prune_objects` with option `--prune-orphaned-activities` to also prune orphaned activities, allowing to reclaim even more database space
 
@@ -73,8 +132,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Extend the mix task `prune_objects` with options to keep more relevant posts
 - Simplified HTTP signature processing
 - Rich media will now hard-exit after 5 seconds, to prevent timeline hangs
+- HTTP Content Security Policy is now far more strict to prevent any potential XSS/CSS leakages
 - Follow requests are now paginated, matches mastodon API spec, so use the Link header to paginate.
-- `internal.fetch` and `relay` actors are now represented with the actor type `Application`
 
 ### Fixed 
 - /api/v1/accounts/lookup will now respect restrict\_unauthenticated
@@ -107,6 +166,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## Removed
 - FollowBotPolicy
+- Passing of undo/block into MRF
 
 ## Upgrade Notes
 - If you have an old instance, you will probably want to run `mix pleroma.database prune_task` in the foreground to catch it up with the history of your instance.
