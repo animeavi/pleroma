@@ -114,7 +114,6 @@ defmodule Pleroma.Mixfile do
   defp deps do
     [
       {:phoenix, "~> 1.6.15"},
-      {:mime, "~> 2.0"},
       {:tzdata, "~> 1.1.1"},
       {:plug_cowboy, "~> 2.6"},
       {:phoenix_pubsub, "~> 2.1"},
@@ -181,7 +180,7 @@ defmodule Pleroma.Mixfile do
       {:restarter, path: "./restarter"},
       {:majic,
        git: "https://akkoma.dev/AkkomaGang/majic.git",
-       ref: "93a3c8e617a96e20f6f17844c5e45b3b30ba1789"},
+       ref: "80540b36939ec83f48e76c61e5000e0fd67706f0"},
       {:eblurhash, "~> 1.2.2"},
       {:open_api_spex, "~> 3.17"},
       {:search_parser,
