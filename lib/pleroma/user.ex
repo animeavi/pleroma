@@ -43,6 +43,8 @@ defmodule Pleroma.User do
   alias Pleroma.Web.OAuth
   alias Pleroma.Web.RelMe
   alias Pleroma.Workers.BackgroundWorker
+  
+  use Pleroma.Web, :verified_routes
 
   require Logger
 
