@@ -131,6 +131,26 @@ defimpl Jason.Encoder, for: [Regex, Function] do
   def encode(term, opts), do: Jason.Encode.string(inspect(term), opts)
 end
 
+defimpl Jsonrs.Encoder, for: [Regex, Function] do
+  def encode(term), do: Jsonrs.encode!(inspect(term))
+end
+
+defimpl Jsonrs.Encoder, for: Tuple do
+  def encode(tuple) do
+    result = Jsonrs.encode!(Tuple.to_list(tuple))
+
+    # match Jason (may be needed)
+    # Jason: ["keyword",["list","string"]]
+    # Jsonrs: ["keyword","[\"list\",\"string\"]"]
+    # result = result
+    # |> String.replace("\"[", "[")
+    # |> String.replace("]\"", "]")
+    # |> String.replace("\\\"", "\"")
+
+    result
+  end
+end
+
 defimpl String.Chars, for: Regex do
   def to_string(term), do: inspect(term)
 end
