@@ -96,7 +96,7 @@ defmodule Pleroma.HTML.Scrubber.Default do
     # restrict img tags to http/https only, because of MediaProxy.
     Meta.allow_tag_with_uri_attributes(:img, ["src"], ["http", "https"])
 
-    Meta.allow_tag_with_this_attribute_values(:img, ["class"], ["emoji"])
+    Meta.allow_tag_with_this_attribute_values(:img, "class", ["emoji"])
 
     Meta.allow_tag_with_these_attributes(:img, [
       "width",
