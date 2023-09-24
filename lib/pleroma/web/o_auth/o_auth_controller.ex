@@ -449,7 +449,7 @@ defmodule Pleroma.Web.OAuth.OAuthController do
       |> Map.put("state", state)
 
     # Handing the request to Ueberauth
-    redirect(conn, to: Routes.o_auth_path(conn, :request, provider, params))
+    redirect(conn, to: ~p"/oauth/#{provider}?#{params}")
   end
 
   def request(%Plug.Conn{} = conn, params) do
