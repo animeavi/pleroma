@@ -94,11 +94,16 @@ defmodule Pleroma.Application do
       end
 
     opts = [strategy: :one_for_one, name: Pleroma.Supervisor, max_restarts: max_restarts]
-    result = Supervisor.start_link(children, opts)
 
-    set_postgres_server_version()
-
-    result
+    with {:ok, data} <- Supervisor.start_link(children, opts) do
+      set_postgres_server_version()
+      {:ok, data}
+    else
+      e ->
+        Logger.error("Failed to start!")
+        Logger.error("#{inspect(e)}")
+        e
+    end
   end
 
   defp set_postgres_server_version do
@@ -151,7 +156,10 @@ defmodule Pleroma.Application do
       mod
       |> to_string()
       |> String.to_existing_atom()
+      |> Code.ensure_loaded!()
     end)
+
+    # Use this when 1.15 is standard
     |> Code.ensure_all_loaded!()
   end
 
@@ -174,7 +182,9 @@ defmodule Pleroma.Application do
       ),
       build_cachex("translations", default_ttl: :timer.hours(24 * 30), limit: 2500),
       build_cachex("instances", default_ttl: :timer.hours(24), ttl_interval: 1000, limit: 2500),
-      build_cachex("request_signatures", default_ttl: :timer.hours(24 * 30), limit: 3000)
+      build_cachex("request_signatures", default_ttl: :timer.hours(24 * 30), limit: 3000),
+      build_cachex("rel_me", default_ttl: :timer.hours(24 * 30), limit: 300),
+      build_cachex("http_backoff", default_ttl: :timer.hours(24 * 30), limit: 10000)
     ]
   end
 
