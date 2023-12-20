@@ -9,14 +9,24 @@ defmodule Pleroma.HTTP.Backoff do
     # figure out from the 429 response when we can make the next request
     # mastodon uses the x-ratelimit-reset header, so we will use that!
     # other servers may not, so we'll default to 5 minutes from now if we can't find it
+    default_5_minute_backoff =
+      DateTime.utc_now()
+      |> Timex.shift(seconds: 5 * 60)
+
     case Enum.find_value(headers, fn {"x-ratelimit-reset", value} -> value end) do
       nil ->
-        DateTime.utc_now()
-        |> Timex.shift(seconds: 5 * 60)
+        Logger.error("Rate limited, but couldn't find timestamp! Using default 5 minute backoff until #{default_5_minute_backoff}")
+        default_5_minute_backoff
 
       value ->
-        {:ok, stamp} = DateTime.from_iso8601(value)
-        stamp
+        with {:ok, stamp, _} <- DateTime.from_iso8601(value) do
+          Logger.error("Rate limited until #{stamp}")
+          stamp
+        else
+          _ ->
+            Logger.error("Rate limited, but couldn't parse timestamp! Using default 5 minute backoff until #{default_5_minute_backoff}")
+            default_5_minute_backoff
+        end
     end
   end
 
