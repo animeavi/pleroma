@@ -60,6 +60,7 @@ defmodule Pleroma.Web.ActivityPub.MRF.BlockNotification do
   def filter(message) do
     with {true, action, object} <- is_block_or_unblock(message),
          %User{} = actor <- User.get_cached_by_ap_id(message["actor"]),
+         true <- actor.is_active,
          %User{} = recipient <- User.get_cached_by_ap_id(object),
          true <- recipient.local,
          true <- is_remote_or_displaying_local?(actor) do
