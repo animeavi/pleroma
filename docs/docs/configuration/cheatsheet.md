@@ -133,6 +133,7 @@ To add configuration to your config file, you can copy it from the base config. 
     * `Pleroma.Web.ActivityPub.MRF.KeywordPolicy`: Rejects or removes from the federated timeline or replaces keywords. (See [`:mrf_keyword`](#mrf_keyword)).
     * `Pleroma.Web.ActivityPub.MRF.NormalizeMarkup`: Pass inbound HTML through a scrubber to make sure it doesn't have anything unusual in it. On by default, cannot be turned off.
     * `Pleroma.Web.ActivityPub.MRF.InlineQuotePolicy`: Append a link to a post that quotes another post with the link to the quoted post, to ensure that software that does not understand quotes can have full context. On by default, cannot be turned off.
+    * `Pleroma.Web.ActivityPub.MRF.RejectNewlyCreatedAccountNotesPolicy`: Rejects posts of users the server only recently learned about for a while. Great to block spam accounts. (See [`:mrf_reject_newly_created_account_notes`](#mrf_reject_newly_created_account_notes))
 * `transparency`: Make the content of your Message Rewrite Facility settings public (via nodeinfo).
 * `transparency_exclusions`: Exclude specific instance names from MRF transparency.  The use of the exclusions feature will be disclosed in nodeinfo as a boolean value.
 * `transparency_obfuscate_domains`: Show domains with `*` in the middle, to censor them if needed. For example, `ridingho.me` will show as `rid*****.me`
@@ -231,6 +232,19 @@ config :pleroma, :mrf_user_allowlist, %{
 Notes:
 - The hashtags in the configuration do not have a leading `#`.
 - This MRF Policy is always enabled, if you want to disable it you have to set empty lists
+
+#### :mrf_reject_newly_created_account_notes
+After initially encountering an user, all their posts
+will be rejected for the configured time (in seconds).
+Only drops posts. Follows, reposts, etc. are not effected.
+
+* `age`: Time below which to reject (in seconds)
+
+An example: (86400 seconds = 24 hours)
+
+```elixir
+config :pleroma, :mrf_reject_newly_created_account_notes, age: 86400
+```
 
 ### :activitypub
 * `unfollow_blocked`: Whether blocks result in people getting unfollowed
