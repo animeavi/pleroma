@@ -27,7 +27,6 @@ defmodule Pleroma.Web.ActivityPub.MRF.NoNewAccounts do
     old_enough = Timex.shift(NaiveDateTime.utc_now(), days: -2)
 
     if(
-      # actor_info.host == "pawoo.net" &&
       is_remote?(actor_info.host) &&
         Timex.to_unix(user.inserted_at) >= Timex.to_unix(old_enough)
     ) do
