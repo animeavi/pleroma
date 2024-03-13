@@ -19,6 +19,14 @@ defmodule Pleroma.Object.Fetcher do
   require Logger
   require Pleroma.Constants
 
+  @moduledoc """
+  This module deals with correctly fetching Acitivity Pub objects in a safe way.
+
+  The core function is `fetch_and_contain_remote_object_from_id/1` which performs
+  the actual fetch and common safety and authenticity checks. Other `fetch_*`
+  function use the former and perform some additional tasks
+  """
+
   @spec reinject_object(struct(), map()) :: {:ok, Object.t()} | {:error, any()}
   defp reinject_object(%Object{data: %{}} = object, new_data) do
     Logger.debug("Reinjecting object #{new_data["id"]}")
@@ -47,6 +55,7 @@ defmodule Pleroma.Object.Fetcher do
     end
   end
 
+  @doc "Assumes object already is in our database and refetches from remote to update (e.g. for polls)"
   def refetch_object(%Object{data: %{"id" => id}} = object) do
     with {:local, false} <- {:local, Object.local?(object)},
          {:ok, new_data} <- fetch_and_contain_remote_object_from_id(id),
@@ -58,7 +67,12 @@ defmodule Pleroma.Object.Fetcher do
     end
   end
 
-  # Note: will create a Create activity, which we need internally at the moment.
+  @doc """
+    Fetches a new object and puts it through the processing pipeline for inbound objects
+
+    Note: will also insert a fake Create activity, since atm we internally
+    need everything to be traced back to a Create activity.
+  """
   def fetch_object_from_id(id, options \\ []) do
     with %URI{} = uri <- URI.parse(id),
          # If we have instance restrictions, apply them here to prevent fetching from unwanted instances
@@ -124,6 +138,7 @@ defmodule Pleroma.Object.Fetcher do
     |> Maps.put_if_present("bcc", data["bcc"])
   end
 
+  @doc "Identical to `fetch_object_from_id/2` but just directly returns the object or on error `nil`"
   def fetch_object_from_id!(id, options \\ []) do
     with {:ok, object} <- fetch_object_from_id(id, options) do
       object
@@ -174,6 +189,7 @@ defmodule Pleroma.Object.Fetcher do
     end
   end
 
+  @doc "Fetches arbitrary remote object and performs basic safety and authenticity checks"
   def fetch_and_contain_remote_object_from_id(id)
 
   def fetch_and_contain_remote_object_from_id(%{"id" => id}),
@@ -206,6 +222,7 @@ defmodule Pleroma.Object.Fetcher do
   def fetch_and_contain_remote_object_from_id(_id),
     do: {:error, "id must be a string"}
 
+  @doc "Do NOT use; only public for use in tests"
   def get_object(id) do
     date = Pleroma.Signature.signed_date()
 
