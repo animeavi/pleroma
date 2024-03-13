@@ -77,6 +77,8 @@ defmodule Pleroma.Object.Fetcher do
   """
   def fetch_object_from_id(id, options \\ []) do
     with %URI{} = uri <- URI.parse(id),
+         # let's check the URI is even vaguely valid first
+         {:scheme, true} <- {:scheme, uri.scheme == "http" or uri.scheme == "https"},
          # If we have instance restrictions, apply them here to prevent fetching from unwanted instances
          {:ok, nil} <- Pleroma.Web.ActivityPub.MRF.SimplePolicy.check_reject(uri),
          {:ok, _} <- Pleroma.Web.ActivityPub.MRF.SimplePolicy.check_accept(uri),
@@ -85,7 +87,6 @@ defmodule Pleroma.Object.Fetcher do
          {_, {:ok, data}} <- {:fetch, fetch_and_contain_remote_object_from_id(id)},
          {_, nil} <- {:normalize, Object.normalize(data, fetch: false)},
          params <- prepare_activity_params(data),
-         {_, :ok} <- {:containment, Containment.contain_origin(id, params)},
          {_, {:ok, activity}} <-
            {:transmogrifier, Transmogrifier.handle_incoming(params, options)},
          {_, _data, %Object{} = object} <-
@@ -95,8 +96,8 @@ defmodule Pleroma.Object.Fetcher do
       {:allowed_depth, false} ->
         {:error, "Max thread distance exceeded."}
 
-      {:containment, _} ->
-        {:error, "Object containment failed."}
+      {:scheme, false} ->
+        {:error, "URI Scheme Invalid"}
 
       {:transmogrifier, {:error, {:reject, e}}} ->
         {:reject, e}
@@ -203,7 +204,8 @@ defmodule Pleroma.Object.Fetcher do
     with {:scheme, true} <- {:scheme, String.starts_with?(id, "http")},
          {:ok, body} <- get_object(id),
          {:ok, data} <- safe_json_decode(body),
-         :ok <- Containment.contain_origin_from_id(id, data) do
+         {_, :ok} <- {:containment, Containment.contain_origin_from_id(id, data)},
+         {_, :ok} <- {:containment, Containment.contain_origin(id, data)} do
       unless Instances.reachable?(id) do
         Instances.set_reachable(id)
       end
@@ -212,6 +214,9 @@ defmodule Pleroma.Object.Fetcher do
     else
       {:scheme, _} ->
         {:error, "Unsupported URI scheme"}
+
+      {:containment, _} ->
+        {:error, "Object containment failed."}
 
       {:error, e} ->
         {:error, e}
