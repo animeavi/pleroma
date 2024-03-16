@@ -318,7 +318,7 @@ defmodule Pleroma.Web.ActivityPub.ActivityPubTest do
   end
 
   test "fetches user featured collection using the first property" do
-    featured_url = "https://friendica.example.com/raha/collections/featured"
+    featured_url = "https://friendica.example.com/featured/raha"
     first_url = "https://friendica.example.com/featured/raha?page=1"
 
     featured_data =
@@ -356,7 +356,7 @@ defmodule Pleroma.Web.ActivityPub.ActivityPubTest do
   end
 
   test "fetches user featured when it has string IDs" do
-    featured_url = "https://example.com/alisaie/collections/featured"
+    featured_url = "https://example.com/users/alisaie/collections/featured"
     dead_url = "https://example.com/users/alisaie/statuses/108311386746229284"
 
     featured_data =
@@ -1726,7 +1726,7 @@ defmodule Pleroma.Web.ActivityPub.ActivityPubTest do
             json(
               %{
                 "@context" => "https://www.w3.org/ns/activitystreams",
-                "id" => "http://remote.org/users/masto_hidden_counters/followers"
+                "id" => "http://remote.org/users/masto_hidden_counters/following"
               },
               headers: HttpRequestMock.activitypub_object_headers()
             )
@@ -1738,7 +1738,7 @@ defmodule Pleroma.Web.ActivityPub.ActivityPubTest do
             json(
               %{
                 "@context" => "https://www.w3.org/ns/activitystreams",
-                "id" => "http://remote.org/users/masto_hidden_counters/following"
+                "id" => "http://remote.org/users/masto_hidden_counters/followers"
               },
               headers: HttpRequestMock.activitypub_object_headers()
             )

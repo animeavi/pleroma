@@ -60,6 +60,46 @@ defmodule Pleroma.Object.FetcherTest do
           body: spoofed_object_with_ids("https://patch.cx/objects/spoof_content_type")
         }
 
+      # Spoof: mismatching ids
+      # Variant 1: Non-exisitng fake id
+      %{
+        method: :get,
+        url:
+          "https://patch.cx/media/03ca3c8b4ac3ddd08bf0f84be7885f2f88de0f709112131a22d83650819e36c2.json"
+      } ->
+        %Tesla.Env{
+          status: 200,
+          url:
+            "https://patch.cx/media/03ca3c8b4ac3ddd08bf0f84be7885f2f88de0f709112131a22d83650819e36c2.json",
+          headers: [{"content-type", "application/activity+json"}],
+          body: spoofed_object_with_ids()
+        }
+
+      %{method: :get, url: "https://patch.cx/objects/spoof"} ->
+        %Tesla.Env{
+          status: 404,
+          url: "https://patch.cx/objects/spoof",
+          headers: [],
+          body: "Not found"
+        }
+
+      # Varaint 2: two-stage payload
+      %{method: :get, url: "https://patch.cx/media/spoof_stage1.json"} ->
+        %Tesla.Env{
+          status: 200,
+          url: "https://patch.cx/media/spoof_stage1.json",
+          headers: [{"content-type", "application/activity+json"}],
+          body: spoofed_object_with_ids("https://patch.cx/media/spoof_stage2.json")
+        }
+
+      %{method: :get, url: "https://patch.cx/media/spoof_stage2.json"} ->
+        %Tesla.Env{
+          status: 200,
+          url: "https://patch.cx/media/spoof_stage2.json",
+          headers: [{"content-type", "application/activity+json"}],
+          body: spoofed_object_with_ids("https://patch.cx/media/unpredictable.json")
+        }
+
       # Spoof: cross-domain redirect with original domain id
       %{method: :get, url: "https://patch.cx/objects/spoof_media_redirect1"} ->
         %Tesla.Env{
@@ -82,7 +122,7 @@ defmodule Pleroma.Object.FetcherTest do
       %{method: :get, url: "https://patch.cx/objects/spoof_redirect"} ->
         %Tesla.Env{
           status: 200,
-          url: "https://patch.cx/objects/spoof",
+          url: "https://patch.cx/objects/spoof_redirect",
           headers: [{"content-type", "application/activity+json"}],
           body: spoofed_object_with_ids("https://patch.cx/objects/spoof_redirect")
         }
@@ -113,6 +153,7 @@ defmodule Pleroma.Object.FetcherTest do
         %{method: :get, url: "https://social.sakamoto.gq/notice/9wTkLEnuq47B25EehM"} ->
           %Tesla.Env{
             status: 200,
+            url: "https://social.sakamoto.gq/objects/f20f2497-66d9-4a52-a2e1-1be2a39c32c1",
             body: File.read!("test/fixtures/fetch_mocks/9wTkLEnuq47B25EehM.json"),
             headers: HttpRequestMock.activitypub_object_headers()
           }
@@ -208,6 +249,18 @@ defmodule Pleroma.Object.FetcherTest do
       assert {:error, {:content_type, _}} =
                Fetcher.fetch_and_contain_remote_object_from_id(
                  "https://patch.cx/objects/spoof_content_type.json"
+               )
+    end
+
+    test "it does not fetch a spoofed object with id different from URL" do
+      assert {:error, "Object's ActivityPub id/url does not match final fetch URL"} =
+               Fetcher.fetch_and_contain_remote_object_from_id(
+                 "https://patch.cx/media/03ca3c8b4ac3ddd08bf0f84be7885f2f88de0f709112131a22d83650819e36c2.json"
+               )
+
+      assert {:error, "Object's ActivityPub id/url does not match final fetch URL"} =
+               Fetcher.fetch_and_contain_remote_object_from_id(
+                 "https://patch.cx/media/spoof_stage1.json"
                )
     end
 
