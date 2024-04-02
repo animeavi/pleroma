@@ -382,11 +382,10 @@ defmodule Pleroma.Config.DeprecationWarnings do
       It is HIGHLY recommended that you migrate your media uploads
       to a subdomain at your earliest convenience
       """)
-
-      :error
-    else
-      :ok
     end
+
+    # This isn't actually an error condition, just a warning
+    :ok
   end
 
   @spec check_old_chat_shoutbox() :: :ok | nil
