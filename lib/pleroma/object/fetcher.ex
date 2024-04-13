@@ -66,7 +66,7 @@ defmodule Pleroma.Object.Fetcher do
       {:ok, object}
     else
       {:local, true} -> {:ok, object}
-      {:id, false} -> {:error, "Object id changed on refetch"}
+      {:id, false} -> {:error, :id_mismatch}
       e -> {:error, e}
     end
   end
@@ -80,7 +80,7 @@ defmodule Pleroma.Object.Fetcher do
   def fetch_object_from_id(id, options \\ []) do
     with %URI{} = uri <- URI.parse(id),
          # let's check the URI is even vaguely valid first
-         {:scheme, true} <- {:scheme, uri.scheme == "http" or uri.scheme == "https"},
+         {:valid_uri_scheme, true} <- {:valid_uri_scheme, uri.scheme == "http" or uri.scheme == "https"},
          # If we have instance restrictions, apply them here to prevent fetching from unwanted instances
          {:ok, nil} <- Pleroma.Web.ActivityPub.MRF.SimplePolicy.check_reject(uri),
          {:ok, _} <- Pleroma.Web.ActivityPub.MRF.SimplePolicy.check_accept(uri),
@@ -99,8 +99,9 @@ defmodule Pleroma.Object.Fetcher do
         log_fetch_error(id, e)
         {:error, :allowed_depth}
 
-      {:scheme, false} ->
-        {:error, "URI Scheme Invalid"}
+      {:valid_uri_scheme, _} = e ->
+        log_fetch_error(id, e)
+        {:error, :invalid_uri_scheme}
 
       {:containment, reason} = e ->
         log_fetch_error(id, e)
@@ -197,7 +198,7 @@ defmodule Pleroma.Object.Fetcher do
   def fetch_and_contain_remote_object_from_id(id) when is_binary(id) do
     Logger.debug("Fetching object #{id} via AP")
 
-    with {:scheme, true} <- {:scheme, String.starts_with?(id, "http")},
+    with {:valid_uri_scheme, true} <- {:valid_uri_scheme, String.starts_with?(id, "http")},
          {_, :ok} <- {:local_fetch, Containment.contain_local_fetch(id)},
          {:ok, final_id, body} <- get_object(id),
          {:ok, data} <- safe_json_decode(body),
@@ -209,17 +210,21 @@ defmodule Pleroma.Object.Fetcher do
 
       {:ok, data}
     else
-      {:strict_id, _} ->
-        {:error, "Object's ActivityPub id/url does not match final fetch URL"}
+      {:strict_id, _} = e->
+        log_fetch_error(id, e)
+        {:error, :id_mismatch}
 
-      {:scheme, _} ->
-        {:error, "Unsupported URI scheme"}
+      {:valid_uri_scheme, _} = e ->
+        log_fetch_error(id, e)
+        {:error, :invalid_uri_scheme}
 
-      {:local_fetch, _} ->
-        {:error, "Trying to fetch local resource"}
+      {:local_fetch, _} = e ->
+        log_fetch_error(id, e)
+        {:error, :local_resource}
 
-      {:containment, _} ->
-        {:error, "Object containment failed."}
+      {:containment, reason} ->
+        log_fetch_error(id, reason)
+        {:error, reason}
 
       {:error, e} ->
         {:error, e}
@@ -230,7 +235,7 @@ defmodule Pleroma.Object.Fetcher do
   end
 
   def fetch_and_contain_remote_object_from_id(_id),
-    do: {:error, "id must be a string"}
+    do: {:error, :invalid_id}
 
   # HOPEFULLY TEMPORARY
   # Basically none of our Tesla mocks in tests set the (supposed to
