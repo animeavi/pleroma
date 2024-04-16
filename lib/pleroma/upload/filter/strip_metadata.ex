@@ -2,7 +2,11 @@
 # Copyright © 2017-2021 Pleroma Authors <https://pleroma.social/>
 # SPDX-License-Identifier: AGPL-3.0-only
 
+<<<<<<<< HEAD:lib/pleroma/upload/filter/exiftool.ex
 defmodule Pleroma.Upload.Filter.Exiftool do
+========
+defmodule Pleroma.Upload.Filter.Exiftool.StripMetadata do
+>>>>>>>> cd7af8189 (Rename StripLocation to StripMetadata for temporal-proofing reasons):lib/pleroma/upload/filter/strip_metadata.ex
   @moduledoc """
   Strips GPS related EXIF tags and overwrites the file in place.
   Also strips or replaces filesystem metadata e.g., timestamps.

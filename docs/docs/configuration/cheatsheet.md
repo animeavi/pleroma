@@ -8,11 +8,6 @@ For from source installations Akkoma configuration works by first importing the 
 
 To add configuration to your config file, you can copy it from the base config. The latest version of it can be viewed [here](https://akkoma.dev/AkkomaGang/akkoma/src/branch/develop/config/config.exs). You can also use this file if you don't know how an option is supposed to be formatted.
 
-## :shout
-
-* `enabled` - Enables the backend Shoutbox chat feature. Defaults to `true`.
-* `limit` - Shout character limit. Defaults to `5_000`
-
 ## :instance
 * `name`: The instance’s name.
 * `email`: Email used to reach an Administrator/Moderator of the instance.
@@ -81,10 +76,6 @@ To add configuration to your config file, you can copy it from the base config. 
   * `enabled`: Enables the send a direct message to a newly registered user. Defaults to `false`.
   * `sender_nickname`: The nickname of the local user that sends the welcome message.
   * `message`: A message that will be send to a newly registered users as a direct message.
-* `chat_message`: - welcome message sent as a chat message.
-  * `enabled`: Enables the send a chat message to a newly registered user. Defaults to `false`.
-  * `sender_nickname`: The nickname of the local user that sends the welcome message.
-  * `message`: A message that will be send to a newly registered users as a chat message.
 * `email`: - welcome message sent as a email.
   * `enabled`: Enables the send a welcome email to a newly registered user. Defaults to `false`.
   * `sender`: The email address or tuple with `{nickname, email}` that will use as sender to the welcome email.
@@ -117,20 +108,19 @@ To add configuration to your config file, you can copy it from the base config. 
 * `transparency_exclusions`: Exclude specific instance names from MRF transparency.  The use of the exclusions feature will be disclosed in nodeinfo as a boolean value.
 * `transparency_obfuscate_domains`: Show domains with `*` in the middle, to censor them if needed. For example, `ridingho.me` will show as `rid*****.me`
 * `policies`: Message Rewrite Policy, either one or a list. Here are the ones available by default:
+    * `Pleroma.Web.ActivityPub.MRF.NoOpPolicy`: Doesn’t modify activities (default).
+    * `Pleroma.Web.ActivityPub.MRF.DropPolicy`: Drops all activities. It generally doesn’t makes sense to use in production.
     * `Pleroma.Web.ActivityPub.MRF.ActivityExpirationPolicy`: Sets a default expiration on all posts made by users of the local instance. Requires `Pleroma.Workers.PurgeExpiredActivity` to be enabled for processing the scheduled delections.
       (See [`:mrf_activity_expiration`](#mrf_activity_expiration))
     * `Pleroma.Web.ActivityPub.MRF.AntiFollowbotPolicy`: Drops follow requests from followbots. Users can still allow bots to follow them by first following the bot.
     * `Pleroma.Web.ActivityPub.MRF.AntiLinkSpamPolicy`: Rejects posts from likely spambots by rejecting posts from new users that contain links.
-    * `Pleroma.Web.ActivityPub.MRF.DropPolicy`: Drops all activities. It generally doesn’t makes sense to use in production.
     * `Pleroma.Web.ActivityPub.MRF.EnsureRePrepended`: Rewrites posts to ensure that replies to posts with subjects do not have an identical subject and instead begin with re:.
-    * `Pleroma.Web.ActivityPub.MRF.FollowBotPolicy`: Automatically follows newly discovered users from the specified bot account. Local accounts, locked accounts, and users with "#nobot" in their bio are respected and excluded from being followed.
     * `Pleroma.Web.ActivityPub.MRF.ForceBotUnlistedPolicy`: Makes all bot posts to disappear from public timelines.
     * `Pleroma.Web.ActivityPub.MRF.HellthreadPolicy`: Blocks messages with too many mentions.
       (See [`mrf_hellthread`](#mrf_hellthread))
     * `Pleroma.Web.ActivityPub.MRF.KeywordPolicy`: Rejects or removes from the federated timeline or replaces keywords. (See [`:mrf_keyword`](#mrf_keyword)).
     * `Pleroma.Web.ActivityPub.MRF.MediaProxyWarmingPolicy`: Crawls attachments using their MediaProxy URLs so that the MediaProxy cache is primed.
     * `Pleroma.Web.ActivityPub.MRF.MentionPolicy`: Drops posts mentioning configurable users. (See [`:mrf_mention`](#mrf_mention)).
-    * `Pleroma.Web.ActivityPub.MRF.NoOpPolicy`: Doesn’t modify activities (default).
     * `Pleroma.Web.ActivityPub.MRF.NoEmptyPolicy`: Drops local activities which have no actual content.
        (e.g. no attachments and only consists of mentions)
     * `Pleroma.Web.ActivityPub.MRF.NoPlaceholderTextPolicy`: Strips content placeholders from posts
@@ -298,18 +288,21 @@ config :pleroma, :mrf_reject_newly_created_account_notes, age: 86400
 
 ### :frontend_configurations
 
-This can be used to configure a keyword list that keeps the configuration data for any kind of frontend. By default, settings for `pleroma_fe` and `masto_fe` are configured. You can find the documentation for `pleroma_fe` configuration into [Pleroma-FE configuration and customization for instance administrators](https://docs-fe.akkoma.dev/stable/CONFIGURATION/#options).
+This can be used to configure a keyword list that keeps the configuration data for any kind of frontend. By default, settings for `pleroma_fe` and `masto_fe` are configured. You can find the documentation for `pleroma_fe` configuration into [Akkoma-FE configuration and customization for instance administrators](https://docs-fe.akkoma.dev/stable/CONFIGURATION/#options).
 
 Frontends can access these settings at `/api/v1/pleroma/frontend_configurations`
 
-To add your own configuration for Pleroma-FE, use it like this:
+To add your own configuration for Akkoma-FE, use it like this:
 
 ```elixir
 config :pleroma, :frontend_configurations,
   pleroma_fe: %{
     theme: "pleroma-dark",
     # ... see /priv/static/static/config.json for the available keys.
-}
+},
+  masto_fe: %{
+    showInstanceSpecificPanel: true
+  }
 ```
 
 These settings **need to be complete**, they will override the defaults.
@@ -661,9 +654,16 @@ This filter replaces the declared filename (not the path) of an upload.
 
 * `text`: Text to replace filenames in links. If empty, `{random}.extension` will be used. You can get the original filename extension by using `{extension}`, for example `custom-file-name.{extension}`.
 
-#### Pleroma.Upload.Filter.Exiftool
+#### Pleroma.Upload.Filter.Exiftool.StripMetadata
 
 This filter only strips the GPS and location metadata with Exiftool leaving color profiles and attributes intact.
+
+No specific configuration.
+
+
+#### Pleroma.Upload.Filter.Exiftool.ReadDescription
+
+This filter reads the ImageDescription and iptc:Caption-Abstract fields with Exiftool so clients can prefill the media description field.
 
 No specific configuration.
 

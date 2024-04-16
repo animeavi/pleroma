@@ -8,13 +8,56 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## Added
 - Support for [FEP-fffd](https://codeberg.org/fediverse/fep/src/branch/main/fep/fffd/fep-fffd.md) (proxy objects)
- 
+- Verified support for elixir 1.16
+- Uploadfilter `Pleroma.Upload.Filter.Exiftool.ReadDescription` returns description values to the FE so they can pre fill the image description field
+
 ## Changed
-- Inbound pipeline error handing was modified somewhat, which should lead to less incomprehensible log spam. Hopefully.
+- Uploadfilter `Pleroma.Upload.Filter.Exiftool` has been renamed to `Pleroma.Upload.Filter.Exiftool.StripMetadata`
 
 ## Fixed
 - Issue preventing fetching anything from IPv6-only instances
 - Issue allowing post content to leak via opengraph tags despite :estrict\_unauthenticated being set
+
+## 2024.03
+
+## Added
+- CLI tasks best-effort checking for past abuse of the recent spoofing exploit
+- new `:mrf_steal_emoji, :download_unknown_size` option; defaults to `false`
+
+## Changed
+- `Pleroma.Upload, :base_url` now MUST be configured explicitly if used;
+  use of the same domain as the instance is **strongly** discouraged
+- `:media_proxy, :base_url` now MUST be configured explicitly if used;
+  use of the same domain as the instance is **strongly** discouraged
+- StealEmoji:
+  - now uses the pack.json format;
+    existing users must migrate with an out-of-band script (check release notes)
+  - only steals shortcodes recognised as valid
+  - URLs of stolen emoji is no longer predictable
+- The `Dedupe` upload filter is now always active;
+  `AnonymizeFilenames` is again opt-in
+- received AP data is sanity checked before we attempt to parse it as a user
+- Uploads, emoji and media proxy now restrict Content-Type headers to a safe subset
+- Akkoma will no longer fetch and parse objects hosted on the same domain
+
+## Fixed
+- Critical security issue allowing Akkoma to be used as a vector for
+  (depending on configuration) impersonation of other users or creation
+  of bogus users and posts on the upload domain
+- Critical security issue letting Akkoma fall for the above impersonation
+  payloads due to lack of strict id checking
+- Critical security issue allowing domains redirect to to pose as the initial domain
+  (e.g. with media proxy's fallback redirects)
+- refetched objects can no longer attribute themselves to third-party actors
+  (this had no externally visible effect since actor info is read from the Create activity)
+- our litepub JSON-LD schema is now served with the correct content type
+- remote APNG attachments are now recognised as images
+
+## Upgrade Notes
+
+- As mentioned in "Changed", `Pleroma.Upload, :base_url` **MUST** be configured. Uploads will fail without it.
+  - Akkoma will refuse to start if this is not set.
+- Same with media proxy.
 
 ## 2024.02
 
@@ -22,6 +65,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Full compatibility with Erlang OTP26
 - handling of GET /api/v1/preferences
 - Akkoma API is now documented
+- ability to auto-approve follow requests from users you are already following
 - The SimplePolicy MRF can now strip user backgrounds from selected remote hosts
 
 ## Changed
