@@ -17,7 +17,7 @@ defmodule Pleroma.Workers.ReceiverWorker do
       {:error, {:validate_object, reason}} -> {:cancel, reason}
       {:error, {:error, {:validate, reason}}} -> {:cancel, reason}
       {:error, {:reject, reason}} -> {:cancel, reason}
-      e -> e
+      e -> {:error, e}
     end
   end
 
