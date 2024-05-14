@@ -50,7 +50,7 @@ defmodule Mix.Tasks.Pleroma.Database do
     # deleting useful activities should more types be added, keep typeof for singles.
 
     # Prune activities who link to a single object
-    {:ok, %{:num_rows => del_single}} =
+    %{:num_rows => del_single} =
       """
       delete from public.activities
       where id in (
@@ -66,10 +66,10 @@ defmodule Mix.Tasks.Pleroma.Database do
         #{limit_arg}
       )
       """
-      |> Repo.query([], timeout: :infinity)
+      |> Repo.query!([], timeout: :infinity)
 
     # Prune activities who link to an array of objects
-    {:ok, %{:num_rows => del_array}} =
+    %{:num_rows => del_array} =
       """
       delete from public.activities
       where id in (
@@ -86,7 +86,7 @@ defmodule Mix.Tasks.Pleroma.Database do
         #{limit_arg}
       )
       """
-      |> Repo.query([], timeout: :infinity)
+      |> Repo.query!([], timeout: :infinity)
 
     del_single + del_array
   end
@@ -222,66 +222,88 @@ defmodule Mix.Tasks.Pleroma.Database do
 
     Logger.info(log_message)
 
-    if Keyword.get(options, :keep_threads) do
-      # We want to delete objects from threads where
-      # 1. the newest post is still old
-      # 2. none of the activities is local
-      # 3. none of the activities is bookmarked
-      # 4. optionally none of the posts is non-public
-      deletable_context =
-        if Keyword.get(options, :keep_non_public) do
-          Pleroma.Activity
-          |> join(:left, [a], b in Pleroma.Bookmark, on: a.id == b.activity_id)
-          |> group_by([a], fragment("? ->> 'context'::text", a.data))
-          |> having(
-            [a],
-            not fragment(
-              # Posts (checked on Create Activity) is non-public
-              "bool_or((not(?->'to' \\? ? OR ?->'cc' \\? ?)) and ? ->> 'type' = 'Create')",
-              a.data,
-              ^Pleroma.Constants.as_public(),
-              a.data,
-              ^Pleroma.Constants.as_public(),
-              a.data
+    {del_obj, _} =
+      if Keyword.get(options, :keep_threads) do
+        # We want to delete objects from threads where
+        # 1. the newest post is still old
+        # 2. none of the activities is local
+        # 3. none of the activities is bookmarked
+        # 4. optionally none of the posts is non-public
+        deletable_context =
+          if Keyword.get(options, :keep_non_public) do
+            Pleroma.Activity
+            |> join(:left, [a], b in Pleroma.Bookmark, on: a.id == b.activity_id)
+            |> group_by([a], fragment("? ->> 'context'::text", a.data))
+            |> having(
+              [a],
+              not fragment(
+                # Posts (checked on Create Activity) is non-public
+                "bool_or((not(?->'to' \\? ? OR ?->'cc' \\? ?)) and ? ->> 'type' = 'Create')",
+                a.data,
+                ^Pleroma.Constants.as_public(),
+                a.data,
+                ^Pleroma.Constants.as_public(),
+                a.data
+              )
             )
-          )
-        else
-          Pleroma.Activity
-          |> join(:left, [a], b in Pleroma.Bookmark, on: a.id == b.activity_id)
-          |> group_by([a], fragment("? ->> 'context'::text", a.data))
-        end
-        |> having([a], max(a.updated_at) < ^time_deadline)
-        |> having([a], not fragment("bool_or(?)", a.local))
-        |> having([_, b], fragment("max(?::text) is null", b.id))
-        |> maybe_limit(limit_cnt)
-        |> select([a], fragment("? ->> 'context'::text", a.data))
+          else
+            Pleroma.Activity
+            |> join(:left, [a], b in Pleroma.Bookmark, on: a.id == b.activity_id)
+            |> group_by([a], fragment("? ->> 'context'::text", a.data))
+          end
+          |> having([a], max(a.updated_at) < ^time_deadline)
+          |> having([a], not fragment("bool_or(?)", a.local))
+          |> having([_, b], fragment("max(?::text) is null", b.id))
+          |> maybe_limit(limit_cnt)
+          |> select([a], fragment("? ->> 'context'::text", a.data))
 
-      Pleroma.Object
-      |> where([o], fragment("? ->> 'context'::text", o.data) in subquery(deletable_context))
-    else
-      deletable =
-        if Keyword.get(options, :keep_non_public) do
-          Pleroma.Object
+        Pleroma.Object
+        |> where([o], fragment("? ->> 'context'::text", o.data) in subquery(deletable_context))
+      else
+        deletable =
+          if Keyword.get(options, :keep_non_public) do
+            Pleroma.Object
+            |> where(
+              [o],
+              fragment(
+                "?->'to' \\? ? OR ?->'cc' \\? ?",
+                o.data,
+                ^Pleroma.Constants.as_public(),
+                o.data,
+                ^Pleroma.Constants.as_public()
+              )
+            )
+          else
+            Pleroma.Object
+          end
+          |> where([o], o.updated_at < ^time_deadline)
           |> where(
             [o],
-            fragment(
-              "?->'to' \\? ? OR ?->'cc' \\? ?",
-              o.data,
-              ^Pleroma.Constants.as_public(),
-              o.data,
-              ^Pleroma.Constants.as_public()
-            )
+            fragment("split_part(?->>'actor', '/', 3) != ?", o.data, ^Pleroma.Web.Endpoint.host())
           )
-        else
-          Pleroma.Object
-        end
-        |> where([o], o.updated_at < ^time_deadline)
-        |> where(
-          [o],
-          fragment("split_part(?->>'actor', '/', 3) != ?", o.data, ^Pleroma.Web.Endpoint.host())
+          |> maybe_limit(limit_cnt)
+          |> select([o], o.id)
+
+        Pleroma.Object
+        |> where([o], o.id in subquery(deletable))
+      end
+      |> Repo.delete_all(timeout: :infinity)
+
+    Logger.info("Deleted #{del_obj} objects...")
+
+    if !Keyword.get(options, :keep_threads) do
+      # Without the --keep-threads option, it's possible that bookmarked
+      # objects have been deleted. We remove the corresponding bookmarks.
+      %{:num_rows => del_bookmarks} =
+        """
+        delete from public.bookmarks
+        where id in (
+          select b.id from public.bookmarks b
+          left join public.activities a on b.activity_id = a.id
+          left join public.objects o on a."data" ->> 'object' = o.data ->> 'id'
+          where o.id is null
         )
-        |> maybe_limit(limit_cnt)
-        |> select([o], o.id)
+        """
 
       Pleroma.Object
       |> where([o], o.id in subquery(deletable))
@@ -292,13 +314,16 @@ defmodule Mix.Tasks.Pleroma.Database do
       prune_orphaned_activities()
     end
 
-    """
-    DELETE FROM hashtags AS ht
-    WHERE NOT EXISTS (
-      SELECT 1 FROM hashtags_objects hto
-      WHERE ht.id = hto.hashtag_id)
-    """
-    |> Repo.query()
+    %{:num_rows => del_hashtags} =
+      """
+      DELETE FROM hashtags AS ht
+      WHERE NOT EXISTS (
+        SELECT 1 FROM hashtags_objects hto
+        WHERE ht.id = hto.hashtag_id)
+      """
+      |> Repo.query!()
+
+    Logger.info("Deleted #{del_hashtags} no longer used hashtags...")
 
     if Keyword.get(options, :vacuum) do
       Maintenance.vacuum("full")
