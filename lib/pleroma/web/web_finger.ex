@@ -96,7 +96,7 @@ defmodule Pleroma.Web.WebFinger do
     |> XmlBuilder.to_doc()
   end
 
-  defp domain do
+  def domain do
     Pleroma.Config.get([__MODULE__, :domain]) || Pleroma.Web.Endpoint.host()
   end
 
@@ -160,12 +160,11 @@ defmodule Pleroma.Web.WebFinger do
     # WebFinger is restricted to HTTPS - https://tools.ietf.org/html/rfc7033#section-9.1
     meta_url = "https://#{domain}/.well-known/host-meta"
 
-    with {:ok, %{status: status, body: body}} when status in 200..299 <-
-           HTTP.Backoff.get(meta_url) do
+    with {:ok, %{status: status, body: body}} when status in 200..299 <- HTTP.get(meta_url) do
       get_template_from_xml(body)
     else
-      _error ->
-        #Logger.warn("Can't find LRDD template in #{inspect(meta_url)}: #{inspect(error)}")
+      error ->
+        Logger.warning("Can't find LRDD template in #{inspect(meta_url)}: #{inspect(error)}")
         {:error, :lrdd_not_found}
     end
   end
@@ -198,7 +197,7 @@ defmodule Pleroma.Web.WebFinger do
 
     with address when is_binary(address) <- get_address_from_domain(domain, encoded_account),
          {:ok, %{status: status, body: body, headers: headers}} when status in 200..299 <-
-           HTTP.Backoff.get(
+           HTTP.get(
              address,
              [{"accept", "application/xrd+xml,application/jrd+json"}]
            ) do
@@ -222,6 +221,7 @@ defmodule Pleroma.Web.WebFinger do
         {:ok, data} -> validate_webfinger(address, data)
         error -> error
       end
+
     else
       error ->
         Logger.debug("Couldn't finger #{account}: #{inspect(error)}")
@@ -240,4 +240,5 @@ defmodule Pleroma.Web.WebFinger do
   end
 
   defp validate_webfinger(url, data), do: {:error, {:webfinger_invalid, url, data}}
+
 end

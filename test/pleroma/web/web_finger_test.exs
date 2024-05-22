@@ -169,7 +169,7 @@ defmodule Pleroma.Web.WebFingerTest do
     test "prevents spoofing" do
       Tesla.Mock.mock(fn
         %{
-          url: "https://gleasonator.com/.well-known/webfinger?resource=acct:alex@gleasonator.com"
+          url: "https://bad.com/.well-known/webfinger?resource=acct:meanie@bad.com"
         } ->
           {:ok,
            %Tesla.Env{
@@ -178,15 +178,16 @@ defmodule Pleroma.Web.WebFingerTest do
              headers: [{"content-type", "application/jrd+json"}]
            }}
 
-        %{url: "https://gleasonator.com/.well-known/host-meta"} ->
+        %{url: "https://bad.com/.well-known/host-meta"} ->
           {:ok,
            %Tesla.Env{
              status: 200,
-             body: File.read!("test/fixtures/tesla_mock/gleasonator.com_host_meta")
+             body: File.read!("test/fixtures/tesla_mock/bad.com_host_meta")
            }}
       end)
 
-      {:error, _data} = WebFinger.finger("alex@gleasonator.com")
+      {:error, _data} = WebFinger.finger("meanie@bad.com")
     end
+
   end
 end
