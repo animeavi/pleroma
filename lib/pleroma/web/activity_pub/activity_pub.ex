@@ -1567,7 +1567,10 @@ defmodule Pleroma.Web.ActivityPub.ActivityPub do
       data
       |> Map.get("attachment", [])
       |> normalize_attachment()
-      |> Enum.filter(fn %{"type" => t} -> t == "PropertyValue" end)
+      |> Enum.filter(fn
+        %{"type" => t} -> t == "PropertyValue"
+        _ -> false
+      end)
       |> Enum.map(fn fields -> Map.take(fields, ["name", "value"]) end)
 
     emojis =
