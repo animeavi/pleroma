@@ -59,7 +59,7 @@ defmodule Pleroma.Web.MastodonAPI.StatusViewTest do
                account_ids: [other_user.id, user.id]
              },
              %{name: "🍵", count: 1, me: false, url: nil, account_ids: [third_user.id]},
-              %{name: "😈", count: 1, me: false, url: nil, account_ids: [domain_blocked_user.id]}
+             %{name: "😈", count: 1, me: false, url: nil, account_ids: [domain_blocked_user.id]}
            ]
 
     status = StatusView.render("show.json", activity: activity, for: user)
@@ -78,7 +78,7 @@ defmodule Pleroma.Web.MastodonAPI.StatusViewTest do
              %{name: "🍵", count: 1, me: false, url: nil, account_ids: [third_user.id]}
            ]
 
-      refute Enum.any?(status[:pleroma][:emoji_reactions], fn reaction -> reaction[:name] == "😈" end)
+    refute Enum.any?(status[:pleroma][:emoji_reactions], fn reaction -> reaction[:name] == "😈" end)
   end
 
   test "works correctly with badly formatted emojis" do
