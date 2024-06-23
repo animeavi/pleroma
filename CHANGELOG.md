@@ -17,6 +17,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## Fixed
 - Meilisearch: order of results returned from our REST API now actually matches how Meilisearch ranks results
+- Emoji are now federated as anonymous objects, fixing issues with
+  some strict servers e.g. rejecting e.g. remote emoji reactions
 
 ## 2024.04.1 (Security)
 
