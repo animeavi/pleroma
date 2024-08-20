@@ -139,8 +139,9 @@ defmodule Pleroma.Web.ActivityPub.PublisherTest do
           {:ok, %Tesla.Env{status: 200, body: "port 80"}}
       end)
 
-      actor = insert(:user)
-      |> with_signing_key()
+      actor =
+        insert(:user)
+        |> with_signing_key()
 
       assert {:ok, %{body: "port 42"}} =
                Publisher.publish_one(%{
@@ -165,8 +166,10 @@ defmodule Pleroma.Web.ActivityPub.PublisherTest do
                    Instances,
                    [:passthrough],
                    [] do
-      actor = insert(:user)
-      |> with_signing_key()
+      actor =
+        insert(:user)
+        |> with_signing_key()
+
       inbox = "http://200.site/users/nick1/inbox"
 
       assert {:ok, _} = Publisher.publish_one(%{inbox: inbox, json: "{}", actor: actor, id: 1})
@@ -177,8 +180,10 @@ defmodule Pleroma.Web.ActivityPub.PublisherTest do
                    Instances,
                    [:passthrough],
                    [] do
-      actor = insert(:user)
-      |> with_signing_key()
+      actor =
+        insert(:user)
+        |> with_signing_key()
+
       inbox = "http://200.site/users/nick1/inbox"
 
       assert {:ok, _} =
@@ -197,8 +202,10 @@ defmodule Pleroma.Web.ActivityPub.PublisherTest do
                    Instances,
                    [:passthrough],
                    [] do
-      actor = insert(:user)
-      |> with_signing_key()
+      actor =
+        insert(:user)
+        |> with_signing_key()
+
       inbox = "http://200.site/users/nick1/inbox"
 
       assert {:ok, _} =
@@ -217,8 +224,10 @@ defmodule Pleroma.Web.ActivityPub.PublisherTest do
                    Instances,
                    [:passthrough],
                    [] do
-      actor = insert(:user)
-      |> with_signing_key()
+      actor =
+        insert(:user)
+        |> with_signing_key()
+
       inbox = "http://404.site/users/nick1/inbox"
 
       assert {:error, _} = Publisher.publish_one(%{inbox: inbox, json: "{}", actor: actor, id: 1})
@@ -230,8 +239,10 @@ defmodule Pleroma.Web.ActivityPub.PublisherTest do
                    Instances,
                    [:passthrough],
                    [] do
-      actor = insert(:user)
-      |> with_signing_key()
+      actor =
+        insert(:user)
+        |> with_signing_key()
+
       inbox = "http://connrefused.site/users/nick1/inbox"
 
       assert capture_log(fn ->
@@ -246,8 +257,10 @@ defmodule Pleroma.Web.ActivityPub.PublisherTest do
                    Instances,
                    [:passthrough],
                    [] do
-      actor = insert(:user)
-      |> with_signing_key()
+      actor =
+        insert(:user)
+        |> with_signing_key()
+
       inbox = "http://200.site/users/nick1/inbox"
 
       assert {:ok, _} = Publisher.publish_one(%{inbox: inbox, json: "{}", actor: actor, id: 1})
@@ -259,8 +272,10 @@ defmodule Pleroma.Web.ActivityPub.PublisherTest do
                    Instances,
                    [:passthrough],
                    [] do
-      actor = insert(:user)
-      |> with_signing_key()
+      actor =
+        insert(:user)
+        |> with_signing_key()
+
       inbox = "http://connrefused.site/users/nick1/inbox"
 
       assert capture_log(fn ->
@@ -299,8 +314,9 @@ defmodule Pleroma.Web.ActivityPub.PublisherTest do
           inbox: "https://rejected.com/users/nick2/inbox"
         })
 
-      actor = insert(:user, follower_address: follower.ap_id)
-      |> with_signing_key()
+      actor =
+        insert(:user, follower_address: follower.ap_id)
+        |> with_signing_key()
 
       {:ok, follower, actor} = Pleroma.User.follow(follower, actor)
       {:ok, _another_follower, actor} = Pleroma.User.follow(another_follower, actor)
@@ -370,8 +386,9 @@ defmodule Pleroma.Web.ActivityPub.PublisherTest do
           inbox: "https://domain.com/users/nick1/inbox"
         })
 
-      actor = insert(:user, follower_address: follower.ap_id)
-      |> with_signing_key()
+      actor =
+        insert(:user, follower_address: follower.ap_id)
+        |> with_signing_key()
 
       {:ok, follower, actor} = Pleroma.User.follow(follower, actor)
       actor = refresh_record(actor)
