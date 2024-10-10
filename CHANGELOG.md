@@ -7,13 +7,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## UNRELEASED
 
 ## Added
-- New config option `:instance, :cleanup_attachments_delay`
+- It is now possible to display custom source URLs in akkoma-fe;
+  the settings are part of the frontend configuration
 
 ## Fixed
 - Media proxy no longer attempts to proxy embedded images
-- Fix significant uneccessary overhead of attachment cleanup;
-  it no longer attempts to cleanup attachments of deleted remote posts
-- Fix “Delete & Redraft” often losing attachments if attachment cleanup was enabled
 
 ## 3.13.3 
 
