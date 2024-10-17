@@ -1221,7 +1221,7 @@ config :pleroma, :config_description, [
             logoMask: true,
             minimalScopesMode: false,
             noAttachmentLinks: false,
-            nsfwCensorImage: "/static/img/nsfw.74818f9.png",
+            nsfwCensorImage: "",
             postContentType: "text/plain",
             redirectRootLogin: "/main/friends",
             redirectRootNoLogin: "/main/all",
@@ -1322,7 +1322,7 @@ config :pleroma, :config_description, [
             type: {:string, :image},
             description:
               "URL of the image to use for hiding NSFW media attachments in the timeline",
-            suggestions: ["/static/img/nsfw.74818f9.png"]
+            suggestions: [""]
           },
           %{
             key: :postContentType,
