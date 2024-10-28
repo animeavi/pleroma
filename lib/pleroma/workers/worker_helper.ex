@@ -1,5 +1,5 @@
 # Pleroma: A lightweight social networking server
-# Copyright © 2017-2022 Pleroma Authors <https://pleroma.social/>
+# Copyright © 2017-2021 Pleroma Authors <https://pleroma.social/>
 # SPDX-License-Identifier: AGPL-3.0-only
 
 defmodule Pleroma.Workers.WorkerHelper do
@@ -38,7 +38,7 @@ defmodule Pleroma.Workers.WorkerHelper do
 
       alias Oban.Job
 
-      def enqueue(op, params, worker_args \\ []) do
+      defp do_enqueue(op, params, worker_args \\ []) do
         params = Map.merge(%{"op" => op}, params)
         queue_atom = String.to_atom(unquote(queue))
         worker_args = worker_args ++ WorkerHelper.worker_args(queue_atom)
@@ -47,6 +47,17 @@ defmodule Pleroma.Workers.WorkerHelper do
         |> apply(:new, [params, worker_args])
         |> Oban.insert()
       end
+
+      def enqueue(op, params, worker_args \\ []),
+        do: do_enqueue(op, params, worker_args)
+
+      @impl Oban.Worker
+      def timeout(_job) do
+        queue_atom = String.to_atom(unquote(queue))
+        Config.get([:workers, :timeout, queue_atom], :timer.minutes(1))
+      end
+
+      defoverridable enqueue: 3
     end
   end
 end
