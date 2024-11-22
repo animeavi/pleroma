@@ -4,6 +4,7 @@
 
 defmodule Pleroma.Web.ActivityPub.RelayTest do
   use Pleroma.DataCase, async: false
+  @moduletag :mocked
 
   alias Pleroma.Activity
   alias Pleroma.User
@@ -23,6 +24,12 @@ defmodule Pleroma.Web.ActivityPub.RelayTest do
     # See <https://www.w3.org/TR/activitystreams-vocabulary/#dfn-application>
     user = Relay.get_actor()
     assert user.actor_type == "Application"
+  end
+
+  test "relay actor has follow* collections" do
+    user = Relay.get_actor()
+    assert user.follower_address
+    assert user.following_address
   end
 
   test "relay actor is invisible" do
@@ -119,7 +126,6 @@ defmodule Pleroma.Web.ActivityPub.RelayTest do
       assert Relay.publish(activity) == {:error, "Not implemented"}
     end
 
-    @tag capture_log: true
     test "returns error when activity not public" do
       activity = insert(:direct_note_activity)
       assert Relay.publish(activity) == {:error, false}
