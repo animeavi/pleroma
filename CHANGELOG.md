@@ -6,21 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## UNRELEASED
 
-### BREAKING
-- The HTML content for new posts (both Client-to-Server as well as Server-to-Server communication) will now use a different formatting to represent MFM. See [FEP-c16b](https://codeberg.org/fediverse/fep/src/branch/main/fep/c16b/fep-c16b.md) for more details.
-
-### Fixed
-
-### Changed
-
-### Added
-
-### Removed
+## Fixed
+- Media proxy no longer attempts to proxy embedded images
 
 ## 3.13.3 
 
 ## BREAKING
 - Minimum PostgreSQL version is raised to 12
+- Swagger UI moved from `/akkoma/swaggerui/` to `/pleroma/swaggerui/`
 
 ## Added
 - Implement [FEP-67ff](https://codeberg.org/fediverse/fep/src/branch/main/fep/67ff/fep-67ff.md) (federation documentation)
@@ -32,6 +25,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Meilisearch: order of results returned from our REST API now actually matches how Meilisearch ranks results
 - Emoji are now federated as anonymous objects, fixing issues with
   some strict servers e.g. rejecting e.g. remote emoji reactions
+- AP objects with additional JSON-LD profiles beyond ActivityStreams can now be fetched
+- Single-selection polls no longer expose the voter_count; MastoAPI demands it be null
+  and this confused some clients leading to vote distributions >100%
+
+## Changed
+- Refactored Rich Media to cache the content in the database. Fetching operations that could block status rendering have been eliminated.
 
 ## 2024.04.1 (Security)
 
@@ -46,17 +45,36 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Support for [FEP-fffd](https://codeberg.org/fediverse/fep/src/branch/main/fep/fffd/fep-fffd.md) (proxy objects)
 - Verified support for elixir 1.16
 - Uploadfilter `Pleroma.Upload.Filter.Exiftool.ReadDescription` returns description values to the FE so they can pre fill the image description field
+  NOTE: this filter MUST be placed before `Exiftool.StripMetadata` to work
 
 ## Changed
 - Inbound pipeline error handing was modified somewhat, which should lead to less incomprehensible log spam. Hopefully.
+- Uploadfilter `Pleroma.Upload.Filter.Exiftool` was replaced by `Pleroma.Upload.Filter.Exiftool.StripMetadata`;
+  the latter strips all non-essential metadata by default but can be configured.
+  To regain the old behaviour of only stripping GPS data set `purge: ["gps:all"]`.
 - Uploadfilter `Pleroma.Upload.Filter.Exiftool` has been renamed to `Pleroma.Upload.Filter.Exiftool.StripMetadata`
+- MRF.InlineQuotePolicy now prefers to insert display URLs instead of ActivityPub IDs
+- Old accounts are no longer listed in WebFinger as aliases; this was breaking spec
 
 ## Fixed
 - Issue preventing fetching anything from IPv6-only instances
 - Issue allowing post content to leak via opengraph tags despite :estrict\_unauthenticated being set
+- Move activities no longer operate on stale user data
+- Missing definitions in our JSON-LD context
+- Issue mangling newlines in code blocks for RSS/Atom feeds
+- static\_fe squeezing non-square avatars and emoji
+- Issue leading to properly JSON-LD compacted emoji reactions being rejected
+- We now use a standard-compliant Accept header when fetching ActivityPub objects
+- /api/pleroma/notification\_settings was rejecting body parameters;
+  this also broke changing this setting via akkoma-fe
+- Issue leading to Mastodon bot accounts being rejected
 - Scope misdetection of remote posts resulting from not recognising
   JSON-LD-compacted forms of public scope; affected e.g. federation with bovine
 - Ratelimits encountered when fetching objects are now respected; 429 responses will cause a backoff when we get one.
+
+## Removed
+- ActivityPub Client-To-Server write API endpoints have been disabled;
+  read endpoints are planned to be removed next release unless a clear need is demonstrated
 
 ## 2024.03
 
