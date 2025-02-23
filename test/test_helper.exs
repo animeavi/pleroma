@@ -5,6 +5,7 @@
 os_exclude = if :os.type() == {:unix, :darwin}, do: [skip_on_mac: true], else: []
 ExUnit.start(exclude: [:federated, :erratic] ++ os_exclude)
 
+Mneme.start()
 Ecto.Adapters.SQL.Sandbox.mode(Pleroma.Repo, :manual)
 
 {:ok, _} = Application.ensure_all_started(:ex_machina)
