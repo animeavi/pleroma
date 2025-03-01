@@ -820,8 +820,6 @@ defmodule Pleroma.Web.Router do
     pipe_through([:activitypub_client])
 
     get("/users/:nickname/inbox", ActivityPubController, :read_inbox)
-
-    get("/users/:nickname/collections/featured", ActivityPubController, :pinned)
   end
 
   scope "/", Pleroma.Web.ActivityPub do
@@ -838,6 +836,7 @@ defmodule Pleroma.Web.Router do
     post("/inbox", ActivityPubController, :inbox)
     get("/users/:nickname/outbox", ActivityPubController, :outbox)
     post("/users/:nickname/inbox", ActivityPubController, :inbox)
+    get("/users/:nickname/collections/featured", ActivityPubController, :pinned)
   end
 
   scope "/relay", Pleroma.Web.ActivityPub do
