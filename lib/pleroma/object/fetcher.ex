@@ -11,9 +11,7 @@ defmodule Pleroma.Object.Fetcher do
   alias Pleroma.Repo
   alias Pleroma.Signature
   alias Pleroma.Web.ActivityPub.InternalFetchActor
-  alias Pleroma.Web.ActivityPub.MRF
   alias Pleroma.Web.ActivityPub.ObjectValidator
-  alias Pleroma.Web.ActivityPub.Pipeline
   alias Pleroma.Web.ActivityPub.Transmogrifier
   alias Pleroma.Web.Federator
 
