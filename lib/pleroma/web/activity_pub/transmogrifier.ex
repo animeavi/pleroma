@@ -21,7 +21,6 @@ defmodule Pleroma.Web.ActivityPub.Transmogrifier do
   alias Pleroma.Web.ActivityPub.Visibility
   alias Pleroma.Web.ActivityPub.ObjectValidators.CommonFixes
   alias Pleroma.Web.Federator
-  alias Pleroma.Workers.TransmogrifierWorker
 
   import Ecto.Query
 
