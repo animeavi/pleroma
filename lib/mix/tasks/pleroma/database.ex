@@ -97,18 +97,18 @@ defmodule Mix.Tasks.Pleroma.Database do
     # activites, it’s _much_ faster to utilise the index. To avoid accidentally
     # deleting useful activities should more types be added, keep typeof for singles.
 
-    # Prune activities who link to an array of objects
-    del_array =
-      if Keyword.get(opts, :arrays, true) do
-        prune_orphaned_activities_array(limit)
-      else
-        0
-      end
-
     # Prune activities who link to a single object
     del_single =
       if Keyword.get(opts, :singles, true) do
         prune_orphaned_activities_singles(limit)
+      else
+        0
+      end
+
+    # Prune activities who link to an array of objects
+    del_array =
+      if Keyword.get(opts, :arrays, true) do
+        prune_orphaned_activities_array(limit)
       else
         0
       end
@@ -331,14 +331,14 @@ defmodule Mix.Tasks.Pleroma.Database do
           where o.id is null
         )
         """
+        |> Repo.query!([], timeout: :infinity)
 
-      Pleroma.Object
-      |> where([o], o.id in subquery(deletable))
+      Logger.info("Deleted #{del_bookmarks} orphaned bookmarks...")
     end
-    |> Repo.delete_all(timeout: :infinity)
 
     if Keyword.get(options, :prune_orphaned_activities) do
-      prune_orphaned_activities()
+      del_activities = prune_orphaned_activities()
+      Logger.info("Deleted #{del_activities} orphaned activities...")
     end
 
     %{:num_rows => del_hashtags} =
@@ -353,8 +353,11 @@ defmodule Mix.Tasks.Pleroma.Database do
     Logger.info("Deleted #{del_hashtags} no longer used hashtags...")
 
     if Keyword.get(options, :vacuum) do
+      Logger.info("Starting vacuum...")
       Maintenance.vacuum("full")
     end
+
+    Logger.info("All done!")
   end
 
   def run(["prune_task"]) do
@@ -408,8 +411,9 @@ defmodule Mix.Tasks.Pleroma.Database do
     |> join(:inner, [a], o in Object,
       on:
         fragment(
-          "(?->>'id') = associated_object_id((?))",
+          "(?->>'id') = COALESCE((?)->'object'->> 'id', (?)->>'object')",
           o.data,
+          a.data,
           a.data
         )
     )
