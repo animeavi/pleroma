@@ -179,7 +179,7 @@ defmodule Pleroma.Mixfile do
       {:remote_ip, "~> 1.1.0"},
       {:captcha,
        git: "https://git.pleroma.social/pleroma/elixir-libraries/elixir-captcha.git",
-       ref: "3bbfa8b5ea13accc1b1c40579a380d8e5cfd6ad2"},
+       ref: "a74ba481f8c9321e2f26111d66fe2dd4b1c2dbd9"},
       {:restarter, path: "./restarter"},
       {:majic,
        git: "https://akkoma.dev/AkkomaGang/majic.git",
