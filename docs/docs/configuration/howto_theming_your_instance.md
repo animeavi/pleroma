@@ -6,7 +6,7 @@ To add a custom theme to your instance, you'll first need to get a custom theme,
 
 ### Create your own theme
 
-* You can create your own theme using the Pleroma FE by going to settings (gear on the top right) and choose the Theme tab. Here you have the options to create a personal theme.
+* You can create your own theme using the Akkoma FE by going to settings (gear on the top right) and choose the Theme tab. Here you have the options to create a personal theme.
 * To download your theme, you can do Save preset
 * If you want to upload a theme to customise it further, you can upload it using Load preset
 
@@ -47,7 +47,7 @@ Now you'll already be able to select the theme in Pleroma FE from the drop-down.
 
 ### Give the theme a name
 
-When you open one of the themes that ship with Akkoma, you'll notice that the json has a `"name"` key. Add a key-value pair to your theme where the key name is `"name"` and the value the name you want to give your theme. After this you can refresh te page in your browser and the name should be visible in the drop-down.
+When you open one of the themes that ship with Akkoma, you'll notice that the JSON has a `"name"` key. Add a key-value pair to your theme where the key name is `"name"` and the value the name you want to give your theme. After this you can refresh the page in your browser and the name should be visible in the drop-down.
 
 Example of `my-awesome-theme.json` where we add the name "My Awesome Theme"
 ```json
@@ -60,7 +60,7 @@ Example of `my-awesome-theme.json` where we add the name "My Awesome Theme"
 
 ### Set as default theme
 
-Now we can set the new theme as default in the [Pleroma FE configuration](https://docs-fe.akkoma.dev/stable/CONFIGURATION).
+Now we can set the new theme as default in the [Pleroma FE configuration](https://docs-fe.akkoma.dev/stable/CONFIGURATION/).
 
 Example of adding the new theme in the back-end config files
 ```elixir
@@ -70,4 +70,4 @@ config :pleroma, :frontend_configurations,
   }
 ```
 
-If you added it in the back-end configuration file, you'll need to restart your instance for the changes to take effect. If you don't see the changes, it's probably because the browser has cached the previous theme. In that case you'll want to clear browser caches. Alternatively you can use a private/incognito window just to see the changes.
+If you added it in the back-end configuration file, you'll need to restart your instance for the changes to take effect. If you don't see the changes, it's probably because the browser has cached the previous theme. In that case you'll want to clear browser caches. Alternatively, you can use a private/incognito window just to see the changes.
