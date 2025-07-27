@@ -4,6 +4,7 @@
 
 defmodule Pleroma.Web.ActivityPub.ActivityPubTest do
   use Pleroma.DataCase, async: false
+  @moduletag :mocked
   use Oban.Testing, repo: Pleroma.Repo
 
   alias Pleroma.Activity
@@ -171,7 +172,7 @@ defmodule Pleroma.Web.ActivityPub.ActivityPubTest do
     end
   end
 
-  describe "building a user from his ap id" do
+  describe "building a user from AP id" do
     test "it returns a user" do
       user_id = "http://mastodon.example.org/users/admin"
       {:ok, user} = ActivityPub.make_user_from_ap_id(user_id)
@@ -184,13 +185,6 @@ defmodule Pleroma.Web.ActivityPub.ActivityPubTest do
       user_id = "http://mastodon.example.org/users/relay"
       {:ok, user} = ActivityPub.make_user_from_ap_id(user_id)
       assert User.invisible?(user)
-    end
-
-    test "it returns a user that accepts chat messages" do
-      user_id = "http://mastodon.example.org/users/admin"
-      {:ok, user} = ActivityPub.make_user_from_ap_id(user_id)
-
-      assert user.accepts_chat_messages
     end
 
     test "works for guppe actors" do
@@ -280,18 +274,10 @@ defmodule Pleroma.Web.ActivityPub.ActivityPubTest do
       assert [] = user.fields
     end
 
-    test "fetches user featured collection" do
+    defp test_featured(inlined) do
       ap_id = "https://example.com/users/lain"
 
       featured_url = "https://example.com/users/lain/collections/featured"
-
-      user_data =
-        "test/fixtures/users_mock/user.json"
-        |> File.read!()
-        |> String.replace("{{nickname}}", "lain")
-        |> Jason.decode!()
-        |> Map.put("featured", featured_url)
-        |> Jason.encode!()
 
       object_id = Ecto.UUID.generate()
 
@@ -301,6 +287,16 @@ defmodule Pleroma.Web.ActivityPub.ActivityPubTest do
         |> String.replace("{{domain}}", "example.com")
         |> String.replace("{{nickname}}", "lain")
         |> String.replace("{{object_id}}", object_id)
+
+      featured_ref = if inlined, do: Jason.decode!(featured_data), else: featured_url
+
+      user_data =
+        "test/fixtures/users_mock/user.json"
+        |> File.read!()
+        |> String.replace("{{nickname}}", "lain")
+        |> Jason.decode!()
+        |> Map.put("featured", featured_ref)
+        |> Jason.encode!()
 
       object_url = "https://example.com/objects/#{object_id}"
 
@@ -330,9 +326,7 @@ defmodule Pleroma.Web.ActivityPub.ActivityPubTest do
             body: featured_data,
             headers: [{"content-type", "application/activity+json"}]
           }
-      end)
 
-      Tesla.Mock.mock_global(fn
         %{
           method: :get,
           url: ^object_url
@@ -345,7 +339,8 @@ defmodule Pleroma.Web.ActivityPub.ActivityPubTest do
       end)
 
       {:ok, user} = ActivityPub.make_user_from_ap_id(ap_id)
-      Process.sleep(50)
+      # wait for oban
+      Pleroma.Tests.ObanHelpers.perform_all()
 
       assert user.featured_address == featured_url
       assert Map.has_key?(user.pinned_objects, object_url)
@@ -355,6 +350,14 @@ defmodule Pleroma.Web.ActivityPub.ActivityPubTest do
       assert Map.has_key?(user.pinned_objects, object_url)
 
       assert %{data: %{"id" => ^object_url}} = Object.get_by_ap_id(object_url)
+    end
+
+    test "fetches user featured collection by bare id" do
+      test_featured(false)
+    end
+
+    test "fetches user featured collection when embedded" do
+      test_featured(true)
     end
   end
 
@@ -392,7 +395,7 @@ defmodule Pleroma.Web.ActivityPub.ActivityPubTest do
         }
     end)
 
-    {:ok, data} = ActivityPub.fetch_and_prepare_featured_from_ap_id(featured_url)
+    {:ok, ^featured_url, data} = ActivityPub.process_featured_collection(featured_url)
     assert Map.has_key?(data, "http://inserted")
   end
 
@@ -426,7 +429,7 @@ defmodule Pleroma.Web.ActivityPub.ActivityPubTest do
         }
     end)
 
-    {:ok, %{}} = ActivityPub.fetch_and_prepare_featured_from_ap_id(featured_url)
+    {:ok, ^featured_url, %{}} = ActivityPub.process_featured_collection(featured_url)
   end
 
   test "it fetches the appropriate tag-restricted posts" do
@@ -2668,9 +2671,9 @@ defmodule Pleroma.Web.ActivityPub.ActivityPubTest do
     assert user.name == " "
   end
 
-  test "pin_data_from_featured_collection will ignore unsupported values" do
-    assert %{} ==
-             ActivityPub.pin_data_from_featured_collection(%{
+  test "process_featured_collection will ignore unsupported values" do
+    assert {:error, :invalid_type} ==
+             ActivityPub.process_featured_collection(%{
                "type" => "CollectionThatIsNotRealAndCannotHurtMe",
                "first" => "https://social.example/users/alice/collections/featured?page=true"
              })
