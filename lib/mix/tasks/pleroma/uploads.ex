@@ -5,6 +5,7 @@
 defmodule Mix.Tasks.Pleroma.Uploads do
   use Mix.Task
   import Mix.Pleroma
+  import Ecto.Query
   alias Pleroma.Upload
   alias Pleroma.Uploaders.Local
   require Logger
@@ -96,5 +97,54 @@ defmodule Mix.Tasks.Pleroma.Uploads do
     end)
 
     shell_info("Done!")
+  end
+
+  @doc """
+  Rewrite media domains to somewhere new
+  """
+  def run(["rewrite_media_domain", from_domain, to_domain | args]) do
+    dry_run = Enum.member?(args, "--dry-run")
+    start_pleroma()
+    IO.puts("Rewriting media domain from #{from_domain} to #{to_domain}")
+    IO.puts("Dry run: #{dry_run}")
+    # actually selecting based on the attachment URL is stupidly difficult due to it being
+    # stored as a JSONB array in the `data` field... the easier way to do this is just to iterate though
+    # local posts
+    from(o in Pleroma.Object)
+    |> where([o], fragment("?->'url'->0->>'href' LIKE ?", o.data, ^"#{from_domain}%"))
+    |> Pleroma.Repo.chunk_stream(100, :batches, timeout: :infinity)
+    |> Stream.each(fn chunk ->
+      # now we just rewrite it and save it back, ezpz
+      chunk
+      |> Enum.each(fn object ->
+        new_data =
+          object
+          |> Map.get(:data)
+          |> Map.update!("url", fn urls ->
+            Enum.map(urls, fn url ->
+              Map.update!(url, "href", fn href ->
+                String.replace(href, from_domain, to_domain)
+                # assert that the new href is a valid url
+                |> URI.parse()
+                |> case do
+                  %URI{scheme: nil, host: nil} ->
+                    raise("Invalid URL after rewriting: #{href}")
+
+                  _ ->
+                    href
+                end
+              end)
+            end)
+          end)
+
+        if dry_run do
+          IO.puts("Dry run: would update object #{object.id} to new media domain (#{inspect(object.data["url"])})")
+        else
+          Pleroma.Repo.update!(Ecto.Changeset.change(object, data: new_data))
+          IO.puts("Updated object #{object.id} to new media domain")
+        end
+      end)
+    end)
+    |> Stream.run()
   end
 end
