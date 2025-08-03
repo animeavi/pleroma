@@ -117,7 +117,6 @@ defmodule Mix.Tasks.Pleroma.Uploads do
       # now we just rewrite it and save it back, ezpz
       chunk
       |> Enum.each(fn object ->
-        IO.inspect(object)
         new_data =
           object
           |> Map.get(:data)
