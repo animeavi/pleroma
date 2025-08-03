@@ -117,28 +117,28 @@ defmodule Mix.Tasks.Pleroma.Uploads do
       # now we just rewrite it and save it back, ezpz
       chunk
       |> Enum.each(fn object ->
+        IO.inspect(object)
         new_data =
           object
           |> Map.get(:data)
           |> Map.update!("url", fn urls ->
             Enum.map(urls, fn url ->
               Map.update!(url, "href", fn href ->
-                String.replace(href, from_domain, to_domain)
-                # assert that the new href is a valid url
-                |> URI.parse()
-                |> case do
+                new_uri = String.replace(href, from_domain, to_domain)
+                check = URI.parse(new_uri)
+                case check do
                   %URI{scheme: nil, host: nil} ->
                     raise("Invalid URL after rewriting: #{href}")
 
                   _ ->
-                    href
+                    new_uri
                 end
               end)
             end)
           end)
 
         if dry_run do
-          IO.puts("Dry run: would update object #{object.id} to new media domain (#{inspect(object.data["url"])})")
+          IO.puts("Dry run: would update object #{object.id} to new media domain (#{inspect(new_data["url"])})")
         else
           Pleroma.Repo.update!(Ecto.Changeset.change(object, data: new_data))
           IO.puts("Updated object #{object.id} to new media domain")
