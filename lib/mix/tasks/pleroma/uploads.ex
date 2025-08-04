@@ -102,48 +102,94 @@ defmodule Mix.Tasks.Pleroma.Uploads do
   @doc """
   Rewrite media domains to somewhere new
   """
-  def run(["rewrite_media_domain", from_domain, to_domain | args]) do
+  def run(["rewrite_media_domain", from_url, to_url | args]) do
     dry_run = Enum.member?(args, "--dry-run")
     start_pleroma()
-    IO.puts("Rewriting media domain from #{from_domain} to #{to_domain}")
+    IO.puts("Rewriting media domain from #{from_url} to #{to_url}")
     IO.puts("Dry run: #{dry_run}")
     # actually selecting based on the attachment URL is stupidly difficult due to it being
     # stored as a JSONB array in the `data` field... the easier way to do this is just to iterate though
     # local posts
     from(o in Pleroma.Object)
-    |> where([o], fragment("?->'url'->0->>'href' LIKE ?", o.data, ^"#{from_domain}%"))
+    |> where(
+      [o],
+      fragment(
+        "?->'url'->0->>'href' LIKE ?
+      OR
+      ?->'attachment'->0->'url'->0->>'href' LIKE ?",
+        o.data,
+        ^"#{from_url}%",
+        o.data,
+        ^"#{to_url}%"
+      )
+    )
     |> Pleroma.Repo.chunk_stream(100, :batches, timeout: :infinity)
     |> Stream.each(fn chunk ->
       # now we just rewrite it and save it back, ezpz
       chunk
       |> Enum.each(fn object ->
         new_data =
-          object
-          |> Map.get(:data)
-          |> Map.update!("url", fn urls ->
-            Enum.map(urls, fn url ->
-              Map.update!(url, "href", fn href ->
-                new_uri = String.replace(href, from_domain, to_domain)
-                check = URI.parse(new_uri)
-                case check do
-                  %URI{scheme: nil, host: nil} ->
-                    raise("Invalid URL after rewriting: #{href}")
-
-                  _ ->
-                    new_uri
-                end
-              end)
-            end)
-          end)
-
-        if dry_run do
-          IO.puts("Dry run: would update object #{object.id} to new media domain (#{inspect(new_data["url"])})")
-        else
-          Pleroma.Repo.update!(Ecto.Changeset.change(object, data: new_data))
-          IO.puts("Updated object #{object.id} to new media domain")
-        end
+          rewrite_url_object(Map.get(object, :data), from_url, to_url)
+          if dry_run do
+            IO.puts(
+              "Dry run: would update object #{object.id} to new media domain (#{inspect(new_data["url"])})"
+            )
+          else
+            Pleroma.Repo.update!(Ecto.Changeset.change(object, data: new_data))
+            IO.puts("Updated object #{object.id} to new media domain")
+          end
       end)
     end)
     |> Stream.run()
+  end
+
+  defp rewrite_url(url, from_url, to_url) do
+    new_uri = String.replace(url, from_url, to_url)
+    check = URI.parse(new_uri)
+
+    case check do
+      %URI{scheme: nil, host: nil} ->
+        raise("Invalid URL after rewriting: #{new_uri}")
+
+      _ ->
+        new_uri
+    end
+  end
+
+  # The base object - we're looking for this, it has the actual url
+  defp rewrite_url_object(%{"type" => "Link", "href" => href} = link, from_url, to_url) do
+    Map.put(link, "href", rewrite_url(href, from_url, to_url))
+  end
+
+  defp rewrite_url_object(%{"type" => "Document", "url" => urls} = object, from_url, to_url) do
+    # Document will contain url field, which will be an array of links
+    Map.put(
+      object,
+      "url",
+      Enum.map(
+        urls,
+        fn url -> rewrite_url_object(url, from_url, to_url) end
+      )
+    )
+  end
+
+  defp rewrite_url_object(
+         %{"type" => "Note", "attachment" => attachments} = object,
+         from_url,
+         to_url
+       ) do
+    # Note will contain an attachment field, which is an array of documents
+    Map.put(
+      object,
+      "attachment",
+      Enum.map(attachments, fn attachment -> rewrite_url_object(attachment, from_url, to_url) end)
+    )
+  end
+
+  defp rewrite_url_object(
+    object, _, _
+  ) do
+    IO.puts(inspect(object))
+    raise("Unhandled object format!")
   end
 end
