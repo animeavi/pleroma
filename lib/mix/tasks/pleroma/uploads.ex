@@ -132,7 +132,7 @@ defmodule Mix.Tasks.Pleroma.Uploads do
           rewrite_url_object(Map.get(object, :data), from_url, to_url)
           if dry_run do
             IO.puts(
-              "Dry run: would update object #{object.id} to new media domain (#{inspect(new_data["url"])})"
+              "Dry run: would update object #{object.id} to new media domain (#{inspect(new_data)})"
             )
           else
             Pleroma.Repo.update!(Ecto.Changeset.change(object, data: new_data))
