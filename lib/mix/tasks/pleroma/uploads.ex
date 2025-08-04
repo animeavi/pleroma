@@ -130,14 +130,15 @@ defmodule Mix.Tasks.Pleroma.Uploads do
       |> Enum.each(fn object ->
         new_data =
           rewrite_url_object(Map.get(object, :data), from_url, to_url)
-          if dry_run do
-            IO.puts(
-              "Dry run: would update object #{object.id} to new media domain (#{inspect(new_data)})"
-            )
-          else
-            Pleroma.Repo.update!(Ecto.Changeset.change(object, data: new_data))
-            IO.puts("Updated object #{object.id} to new media domain")
-          end
+
+        if dry_run do
+          IO.puts(
+            "Dry run: would update object #{object.id} to new media domain (#{inspect(new_data)})"
+          )
+        else
+          Pleroma.Repo.update!(Ecto.Changeset.change(object, data: new_data))
+          IO.puts("Updated object #{object.id} to new media domain")
+        end
       end)
     end)
     |> Stream.run()
@@ -174,7 +175,7 @@ defmodule Mix.Tasks.Pleroma.Uploads do
   end
 
   defp rewrite_url_object(
-         %{"type" => "Note", "attachment" => attachments} = object,
+         %{"type" => type, "attachment" => attachments} = object,
          from_url,
          to_url
        ) do
@@ -187,8 +188,10 @@ defmodule Mix.Tasks.Pleroma.Uploads do
   end
 
   defp rewrite_url_object(
-    object, _, _
-  ) do
+         object,
+         _,
+         _
+       ) do
     IO.puts(inspect(object))
     raise("Unhandled object format!")
   end
