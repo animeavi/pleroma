@@ -120,7 +120,7 @@ defmodule Mix.Tasks.Pleroma.Uploads do
         o.data,
         ^"#{from_url}%",
         o.data,
-        ^"#{to_url}%"
+        ^"#{from_url}%"
       )
     )
     |> Pleroma.Repo.chunk_stream(100, :batches, timeout: :infinity)
