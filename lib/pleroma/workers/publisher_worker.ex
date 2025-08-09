@@ -34,7 +34,18 @@ defmodule Pleroma.Workers.PublisherWorker do
   end
 
   def perform(%Job{args: %{"op" => "publish_one", "module" => module_name, "params" => params}}) do
-    Federator.perform(:publish_one, String.to_existing_atom(module_name), params)
+    res = Federator.perform(:publish_one, String.to_existing_atom(module_name), params)
+
+    case res do
+      # instance / actor was explicitly deleted; there’s nothing to deliver to anymore
+      # since we don’t know whether the whole instance is gone or just this actor,
+      # do NOT immediately mark the instance as unreachable
+      {:error, %{status: 410}} ->
+        :ok
+
+      res ->
+        res
+    end
   end
 
   @impl Oban.Worker
