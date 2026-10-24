@@ -449,7 +449,8 @@ config :pleroma, :rich_media,
     Pleroma.Web.RichMedia.Parsers.OEmbed
   ],
   failure_backoff: :timer.minutes(20),
-  ttl_setters: [Pleroma.Web.RichMedia.Parser.TTL.AwsSignedUrl]
+  ttl_setters: [Pleroma.Web.RichMedia.Parser.TTL.AwsSignedUrl],
+  expiration: 2
 
 config :pleroma, :media_proxy,
   enabled: false,
@@ -592,7 +593,8 @@ config :pleroma, Oban,
     mute_expire: 5,
     search_indexing: 10,
     nodeinfo_fetcher: 1,
-    database_prune: 1
+    database_prune: 1,
+    rich_media_expiration: 2
   ],
   plugins: [
     Oban.Plugins.Pruner,

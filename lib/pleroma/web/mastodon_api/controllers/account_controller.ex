@@ -196,6 +196,7 @@ defmodule Pleroma.Web.MastodonAPI.AccountController do
         :allow_following_move,
         :also_known_as,
         :accepts_chat_messages
+
       ]
       |> Enum.reduce(%{}, fn key, acc ->
         Maps.put_if_present(acc, key, params[key], &{:ok, Params.truthy_param?(&1)})
@@ -226,7 +227,6 @@ defmodule Pleroma.Web.MastodonAPI.AccountController do
       |> Maps.put_if_present(:language, Pleroma.Web.Gettext.normalize_locale(params[:language]))
       |> Maps.put_if_present(:status_ttl_days, params[:status_ttl_days], status_ttl_days_value)
 
-    IO.inspect(user_params)
     # What happens here:
     #
     # We want to update the user through the pipeline, but the ActivityPub
